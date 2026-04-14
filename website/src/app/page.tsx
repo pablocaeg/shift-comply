@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { loadWasm, isLoaded } from "@/lib/wasm";
 import { SCENARIOS } from "@/lib/scenarios";
 import type { Scenario, Shift, Jurisdiction, Rule, ComplianceReport, Violation } from "@/lib/types";
+import { tagShifts, nextUid } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -29,7 +30,7 @@ export default function Home() {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [report, setReport] = useState<ComplianceReport | null>(null);
   const [jurisdictions, setJurisdictions] = useState<Jurisdiction[]>([]);
-  const [editDialog, setEditDialog] = useState<{ index: number; shift: Shift } | null>(null);
+  const [editDialog, setEditDialog] = useState<{ uid: string; shift: Shift } | null>(null);
   const [addDialog, setAddDialog] = useState<{ workerId: string; date: string } | null>(null);
   const [fixedViolations, setFixedViolations] = useState<FixedViolation[]>([]);
 
@@ -58,7 +59,7 @@ export default function Home() {
       const s = SCENARIOS[0];
       setScenario(s);
       setJurisdiction(s.jurisdiction);
-      const initial = JSON.parse(JSON.stringify(s.shifts)) as Shift[];
+      const initial = tagShifts(JSON.parse(JSON.stringify(s.shifts)) as Shift[]);
       setShifts(initial);
       validate(s.jurisdiction, s.scope, initial);
     }
@@ -68,7 +69,7 @@ export default function Home() {
     setScenario(s);
     setJurisdiction(s.jurisdiction);
     setFixedViolations([]);
-    const next = JSON.parse(JSON.stringify(s.shifts)) as Shift[];
+    const next = tagShifts(JSON.parse(JSON.stringify(s.shifts)) as Shift[]);
     setShifts(next);
     validate(s.jurisdiction, s.scope, next);
   };
@@ -78,23 +79,34 @@ export default function Home() {
     if (scenario) validate(jur, scenario.scope, shifts);
   };
 
-  // Shift mutations
-  const updateShift = (index: number, updated: Shift) => {
-    const next = [...shifts]; next[index] = updated; setShifts(next);
+  // Shift mutations (all uid-based)
+  const updateShift = (uid: string, updated: Shift) => {
+    const next = shifts.map(s => s._uid === uid ? { ...updated, _uid: uid } : s);
+    setShifts(next);
     if (scenario) validate(jurisdiction, scenario.scope, next);
     setEditDialog(null);
   };
 
-  const deleteShift = (index: number) => {
-    const next = shifts.filter((_, i) => i !== index); setShifts(next);
+  const deleteShift = (uid: string) => {
+    const next = shifts.filter(s => s._uid !== uid);
+    setShifts(next);
     if (scenario) validate(jurisdiction, scenario.scope, next);
     setEditDialog(null);
   };
 
   const addShift = (shift: Shift) => {
-    const next = [...shifts, shift]; setShifts(next);
+    const next = [...shifts, { ...shift, _uid: nextUid() }];
+    setShifts(next);
     if (scenario) validate(jurisdiction, scenario.scope, next);
     setAddDialog(null);
+  };
+
+  const moveShift = (uid: string, newWorkerId: string) => {
+    const worker = scenario?.workers.find(w => w.id === newWorkerId);
+    if (!worker) return;
+    const next = shifts.map(s => s._uid === uid ? { ...s, staff_id: newWorkerId, staff_type: worker.type } : s);
+    setShifts(next);
+    if (scenario) validate(jurisdiction, scenario.scope, next);
   };
 
   // Auto-fix
@@ -280,7 +292,11 @@ export default function Home() {
                 shifts={shifts}
                 report={report}
                 onCellClick={(wid, date) => setAddDialog({ workerId: wid, date })}
-                onShiftClick={(idx) => setEditDialog({ index: idx, shift: { ...shifts[idx] } })}
+                onShiftClick={(uid) => {
+                  const s = shifts.find(x => x._uid === uid);
+                  if (s) setEditDialog({ uid, shift: { ...s } });
+                }}
+                onMoveShift={moveShift}
               />
 
               {/* Violations */}
@@ -305,8 +321,8 @@ export default function Home() {
             <ShiftForm
               shift={editDialog.shift}
               workerName={scenario?.workers.find(w => w.id === editDialog.shift.staff_id)?.name || ""}
-              onSave={(s) => updateShift(editDialog.index, s)}
-              onDelete={() => deleteShift(editDialog.index)}
+              onSave={(s) => updateShift(editDialog.uid, s)}
+              onDelete={() => deleteShift(editDialog.uid)}
               onCancel={() => setEditDialog(null)}
             />
           )}

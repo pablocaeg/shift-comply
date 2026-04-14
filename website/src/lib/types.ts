@@ -56,6 +56,7 @@ export interface Constraint {
 }
 
 export interface Shift {
+  _uid?: string;
   staff_id: string;
   staff_type: string;
   unit_type?: string;
@@ -63,6 +64,12 @@ export interface Shift {
   end: string;
   on_call?: boolean;
 }
+
+let _counter = 0;
+export function tagShifts(shifts: Shift[]): Shift[] {
+  return shifts.map(s => ({ ...s, _uid: s._uid || `s${++_counter}` }));
+}
+export function nextUid(): string { return `s${++_counter}`; }
 
 export interface Schedule {
   jurisdiction: string;
