@@ -200,7 +200,7 @@ export default function Home() {
           Know if your hospital schedule is legal
         </h1>
         <p className="text-neutral-500 text-base max-w-lg mx-auto mb-8 leading-relaxed">
-          Healthcare labor laws vary across jurisdictions. ACGME caps residents at 80 hrs/week, California mandates nurse ratios, Spain limits guard duty. Shift Comply validates any schedule against the actual regulations, with legal citations.
+          Scheduling systems let you set constraints. Shift Comply tells you what those constraints should be, based on the actual law. Select a jurisdiction, get the legally correct values with citations. No manual research.
         </p>
         {loaded ? (
           <div className="flex justify-center gap-3 flex-wrap">

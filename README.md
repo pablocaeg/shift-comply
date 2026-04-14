@@ -17,9 +17,27 @@ Healthcare labor laws vary enormously across jurisdictions:
 - The EU Working Time Directive caps working time at 48 hours/week, but member states implement it differently, with varying opt-out provisions and on-call definitions shaped by CJEU case law (SIMAP, Jaeger, Matzak).
 - Spain has national rules (Estatuto de los Trabajadores, Estatuto Marco, MIR residency regulations) plus autonomous community variations: Catalonia limits guards to 4/month, Andalusia is reforming guard duration from 24 to 17 hours, Madrid mandates 36-hour weekly rest after the 2022 Supreme Court ruling.
 
-Most scheduling systems today rely on manual configuration of these constraints by hospital administrators. This approach assumes that admins know their own regulations in detail, can translate legal language into scheduling rules, and will keep up with changes across jurisdictions. That assumption breaks down as organizations scale internationally.
+Scheduling systems like [YouShift](https://www.you-shift.com/) (YC W25) already have powerful constraint engines: max hours, mandatory rest, consecutive day limits, shift sequence rules, team composition requirements. The system can enforce all of these. But the constraint *values* have to come from somewhere. Today, hospital admins configure them manually, which assumes they know their own regulations, can translate legal language into scheduling parameters, and will keep up with changes across jurisdictions.
 
-[YouShift](https://www.you-shift.com/) (YC W25), which automates hospital shift scheduling with AI, faces exactly this challenge as it expands from Spain into the US and broader Europe. Shift Comply is designed as the regulatory layer that scheduling systems like YouShift can build on top of: a structured, version-controlled knowledge base of the actual rules, queryable by any system that needs them.
+That works for a single hospital. It breaks when you scale internationally.
+
+Shift Comply is the layer that answers: **what should those values be, and what law requires them?** When a hospital selects its jurisdiction, Shift Comply provides the legally correct constraint values with citations attached. The scheduling system consumes them directly.
+
+## How it connects to scheduling systems
+
+A scheduling optimizer like YouShift already supports constraints like:
+
+| YouShift constraint | Shift Comply provides |
+|---|---|
+| Maximum hours per week | 80 for US residents (ACGME CPR VI.F.1), 48 for Spanish public health (Ley 55/2003 Art. 48) |
+| Mandatory rest between shifts | 12h in Spain (Estatuto de los Trabajadores Art. 34.3), 8h recommended by ACGME |
+| Maximum consecutive night shifts | 6 for US residents (ACGME), 2 weeks in Spain (Art. 36.3) |
+| Monthly on-call limits | 7 guards nationally in Spain (RD 1146/2006), 4 in Catalonia (ICS III Acord) |
+| Nurse staffing minimums | 1:2 in California ICU (Title 22 CCR S70217), no state mandate in Texas |
+| Overtime thresholds | 8h daily in California (Labor Code S510), no daily threshold federally |
+| Shift duration caps | 12h for CA non-resident healthcare (IWC Wage Order 5), 24h for ACGME residents |
+
+The integration: when a hospital onboards and selects "Catalonia, public hospital," Shift Comply auto-populates every constraint value with the legally correct number from the ICS collective agreement, Spanish national law, and the EU Working Time Directive. No manual research, no guessing, every value traceable to a specific statute.
 
 ## What it does
 
