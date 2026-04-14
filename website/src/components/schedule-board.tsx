@@ -4,8 +4,7 @@ import type { Scenario, Shift, ComplianceReport, Violation } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { useMemo } from "react";
 
-function fmt(iso: string) {
-  const d = new Date(iso);
+function fmtTime(d: Date): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
@@ -121,7 +120,7 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
                     dS.setHours(0, 0, 0, 0);
                     const dE = new Date(dS);
                     dE.setDate(dE.getDate() + 1);
-                    const dateStr = dS.toISOString().slice(0, 10);
+                    const dateStr = `${dS.getFullYear()}-${String(dS.getMonth() + 1).padStart(2, "0")}-${String(dS.getDate()).padStart(2, "0")}`;
                     const isWeekend = dS.getDay() === 0 || dS.getDay() === 6;
                     const dayShifts = workerShifts.filter(sh => new Date(sh.start) < dE && new Date(sh.end) > dS);
 
@@ -182,7 +181,7 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
                                     <div className="text-[8px] font-bold uppercase tracking-wider opacity-60 mb-0.5">On-call guard</div>
                                   )}
                                   <div className="font-semibold text-[12px]">
-                                    {fmt(vS.toISOString())} - {fmt(vE.toISOString())}
+                                    {fmtTime(vS)}{"\u2009\u2013\u2009"}{fmtTime(vE)}
                                   </div>
                                   <div className="opacity-60 text-[10px] mt-0.5">
                                     {totalDur === visDur ? `${totalDur.toFixed(0)}h` : `${visDur.toFixed(0)}h / ${totalDur.toFixed(0)}h total`}
