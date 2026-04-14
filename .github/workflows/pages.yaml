@@ -30,7 +30,15 @@ jobs:
         run: GOOS=js GOARCH=wasm go build -o website/public/shiftcomply.wasm ./cmd/wasm
 
       - name: Copy wasm_exec.js
-        run: cp "$(go env GOROOT)/lib/wasm/wasm_exec.js" website/public/wasm_exec.js
+        run: |
+          GOROOT=$(go env GOROOT)
+          if [ -f "$GOROOT/lib/wasm/wasm_exec.js" ]; then
+            cp "$GOROOT/lib/wasm/wasm_exec.js" website/public/wasm_exec.js
+          elif [ -f "$GOROOT/misc/wasm/wasm_exec.js" ]; then
+            cp "$GOROOT/misc/wasm/wasm_exec.js" website/public/wasm_exec.js
+          else
+            echo "wasm_exec.js not found" && exit 1
+          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
