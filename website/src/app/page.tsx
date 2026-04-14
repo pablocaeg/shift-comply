@@ -16,6 +16,12 @@ function shiftDuration(s: Shift) {
   return (new Date(s.end).getTime() - new Date(s.start).getTime()) / 3600000;
 }
 
+// Format Date to local ISO string (avoids toISOString UTC conversion)
+function toLocalISO(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 export default function Home() {
   const [loaded, setLoaded] = useState(false);
   const [scenario, setScenario] = useState<Scenario | null>(null);
@@ -96,33 +102,50 @@ export default function Home() {
     const next = [...shifts];
 
     if (k.includes("max-weekly") || k.includes("max-combined") || k.includes("max-ordinary") || k.includes("days-off") || k.includes("day-of-rest")) {
+      // Remove the last shift for this worker
       const idx = next.map((s, i) => ({ s, i })).filter(x => x.s.staff_id === sid).sort((a, b) => new Date(b.s.start).getTime() - new Date(a.s.start).getTime())[0]?.i;
       if (idx !== undefined) next.splice(idx, 1);
+
     } else if (k.includes("rest-between") || k.includes("min-rest")) {
-      const sorted = next.filter(s => s.staff_id === sid).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-      for (let i = 1; i < sorted.length; i++) {
-        const gap = (new Date(sorted[i].start).getTime() - new Date(sorted[i - 1].end).getTime()) / 3600000;
+      // Fix ALL rest gaps for this worker by cascading forward
+      const staffIndices = next.map((s, i) => ({ s, i })).filter(x => x.s.staff_id === sid).sort((a, b) => new Date(a.s.start).getTime() - new Date(b.s.start).getTime());
+
+      for (let j = 1; j < staffIndices.length; j++) {
+        const prevEnd = new Date(next[staffIndices[j - 1].i].end);
+        const curStart = new Date(next[staffIndices[j].i].start);
+        const gap = (curStart.getTime() - prevEnd.getTime()) / 3600000;
+
         if (gap >= 0 && gap < violation.limit) {
           const need = Math.ceil(violation.limit - gap);
-          const li = next.findIndex(s => s.staff_id === sorted[i].staff_id && s.start === sorted[i].start);
-          if (li >= 0) {
-            const oS = new Date(next[li].start); oS.setTime(oS.getTime() + need * 3600000);
-            const oE = new Date(next[li].end); oE.setTime(oE.getTime() + need * 3600000);
-            next[li] = { ...next[li], start: oS.toISOString().slice(0, 19), end: oE.toISOString().slice(0, 19) };
-          }
-          break;
+          const dur = shiftDuration(next[staffIndices[j].i]);
+          const newStart = new Date(prevEnd.getTime() + violation.limit * 3600000);
+          const newEnd = new Date(newStart.getTime() + dur * 3600000);
+          next[staffIndices[j].i] = {
+            ...next[staffIndices[j].i],
+            start: toLocalISO(newStart),
+            end: toLocalISO(newEnd),
+          };
         }
       }
+
     } else if (k.includes("max-shift")) {
-      const i = next.findIndex(s => s.staff_id === sid && shiftDuration(s) > violation.limit);
-      if (i >= 0) {
-        const nE = new Date(new Date(next[i].start).getTime() + violation.limit * 3600000);
-        next[i] = { ...next[i], end: nE.toISOString().slice(0, 19) };
+      // Trim ALL over-long shifts for this worker
+      for (let i = 0; i < next.length; i++) {
+        if (next[i].staff_id !== sid) continue;
+        const dur = shiftDuration(next[i]);
+        if (dur > violation.limit) {
+          const nE = new Date(new Date(next[i].start).getTime() + violation.limit * 3600000);
+          next[i] = { ...next[i], end: toLocalISO(nE) };
+        }
       }
+
     } else if (k.includes("guards") || k.includes("on-call")) {
+      // Remove the last on-call shift
       const idx = next.map((s, i) => ({ s, i })).filter(x => x.s.staff_id === sid && x.s.on_call).sort((a, b) => new Date(b.s.start).getTime() - new Date(a.s.start).getTime())[0]?.i;
       if (idx !== undefined) next.splice(idx, 1);
+
     } else {
+      // Fallback: remove the last shift
       const idx = next.map((s, i) => ({ s, i })).filter(x => x.s.staff_id === sid).sort((a, b) => new Date(b.s.start).getTime() - new Date(a.s.start).getTime())[0]?.i;
       if (idx !== undefined) next.splice(idx, 1);
     }
@@ -311,9 +334,10 @@ function ShiftForm({ shift, workerName, onSave, onDelete, onCancel }: {
     const dateStr = shift.start.slice(0, 10);
     let endDate = dateStr;
     if (endTime <= startTime) {
-      const d = new Date(dateStr);
+      // Shift crosses midnight
+      const d = new Date(dateStr + "T00:00:00");
       d.setDate(d.getDate() + 1);
-      endDate = d.toISOString().slice(0, 10);
+      endDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
     }
     onSave({ ...shift, start: `${dateStr}T${startTime}:00`, end: `${endDate}T${endTime}:00`, on_call: onCall });
   };
