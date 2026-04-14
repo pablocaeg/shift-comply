@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ScheduleBoard } from "@/components/schedule-board";
-import { ViolationList } from "@/components/violation-list";
+import { ViolationList, type FixedViolation } from "@/components/violation-list";
 
 function shiftDuration(s: Shift) {
   return (new Date(s.end).getTime() - new Date(s.start).getTime()) / 3600000;
@@ -31,6 +31,7 @@ export default function Home() {
   const [jurisdictions, setJurisdictions] = useState<Jurisdiction[]>([]);
   const [editDialog, setEditDialog] = useState<{ index: number; shift: Shift } | null>(null);
   const [addDialog, setAddDialog] = useState<{ workerId: string; date: string } | null>(null);
+  const [fixedViolations, setFixedViolations] = useState<FixedViolation[]>([]);
 
   // Load WASM
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function Home() {
   const pickScenario = (s: Scenario) => {
     setScenario(s);
     setJurisdiction(s.jurisdiction);
+    setFixedViolations([]);
     const next = JSON.parse(JSON.stringify(s.shifts)) as Shift[];
     setShifts(next);
     validate(s.jurisdiction, s.scope, next);
@@ -156,6 +158,14 @@ export default function Home() {
       const idx = next.map((s, i) => ({ s, i })).filter(x => x.s.staff_id === sid).sort((a, b) => new Date(b.s.start).getTime() - new Date(a.s.start).getTime())[0]?.i;
       if (idx !== undefined) next.splice(idx, 1);
     }
+
+    // Record the fix
+    setFixedViolations(prev => [...prev, {
+      ruleKey: violation.rule_key,
+      ruleName: violation.rule_name || violation.rule_key,
+      staffId: violation.staff_id,
+      fixedAt: Date.now(),
+    }]);
 
     setShifts(next);
     if (scenario) validate(jurisdiction, scenario.scope, next);
@@ -275,7 +285,7 @@ export default function Home() {
 
               {/* Violations */}
               <div className="mt-5">
-                <ViolationList report={report} onFix={autoFix} />
+                <ViolationList report={report} fixedViolations={fixedViolations} onFix={autoFix} />
               </div>
             </section>
           )}
