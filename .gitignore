@@ -6,3 +6,4 @@ website/public/wasm_exec.js
 website/.next
 website/out
 website/node_modules
+.next/
