@@ -102,9 +102,16 @@ export default function Home() {
     const next = [...shifts];
 
     if (k.includes("max-weekly") || k.includes("max-combined") || k.includes("max-ordinary") || k.includes("days-off") || k.includes("day-of-rest")) {
-      // Remove the last shift for this worker
-      const idx = next.map((s, i) => ({ s, i })).filter(x => x.s.staff_id === sid).sort((a, b) => new Date(b.s.start).getTime() - new Date(a.s.start).getTime())[0]?.i;
-      if (idx !== undefined) next.splice(idx, 1);
+      // Keep removing the last shift until the violation would be resolved
+      const excessHours = violation.actual - violation.limit;
+      let removed = 0;
+      while (removed < excessHours + 14) { // safety margin
+        const staffShifts = next.map((s, i) => ({ s, i })).filter(x => x.s.staff_id === sid).sort((a, b) => new Date(b.s.start).getTime() - new Date(a.s.start).getTime());
+        if (!staffShifts.length) break;
+        const dur = shiftDuration(staffShifts[0].s);
+        next.splice(staffShifts[0].i, 1);
+        removed += dur;
+      }
 
     } else if (k.includes("rest-between") || k.includes("min-rest")) {
       // Fix ALL rest gaps for this worker by cascading forward
