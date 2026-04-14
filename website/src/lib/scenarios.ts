@@ -1,0 +1,98 @@
+import type { Scenario } from "./types";
+
+const C = ["#818cf8", "#f472b6", "#38bdf8", "#34d399", "#fb923c", "#a78bfa"];
+
+export const SCENARIOS: Scenario[] = [
+  {
+    id: "overworked", badge: "fail", label: "Violations",
+    name: "The Overworked Resident", who: "University Hospital, California",
+    info: "Dr. Santos works six 17-hour shifts in one week.",
+    jurisdiction: "US-CA", scope: "accredited_programs", flagged: "dr-santos",
+    workers: [
+      { id: "dr-santos", name: "Dr. Maria Santos", role: "PGY-2 Resident", type: "resident", color: C[0] },
+      { id: "dr-park", name: "Dr. James Park", role: "PGY-3 Resident", type: "resident", color: C[1] },
+      { id: "dr-lopez", name: "Dr. Ana Lopez", role: "PGY-2 Resident", type: "resident", color: C[2] },
+    ],
+    shifts: [
+      { staff_id: "dr-santos", staff_type: "resident", start: "2025-03-10T06:00:00", end: "2025-03-10T23:00:00" },
+      { staff_id: "dr-santos", staff_type: "resident", start: "2025-03-11T06:00:00", end: "2025-03-11T23:00:00" },
+      { staff_id: "dr-santos", staff_type: "resident", start: "2025-03-12T06:00:00", end: "2025-03-12T23:00:00" },
+      { staff_id: "dr-santos", staff_type: "resident", start: "2025-03-13T06:00:00", end: "2025-03-13T23:00:00" },
+      { staff_id: "dr-santos", staff_type: "resident", start: "2025-03-14T06:00:00", end: "2025-03-14T23:00:00" },
+      { staff_id: "dr-santos", staff_type: "resident", start: "2025-03-15T06:00:00", end: "2025-03-15T23:00:00" },
+      { staff_id: "dr-park", staff_type: "resident", start: "2025-03-10T07:00:00", end: "2025-03-10T19:00:00" },
+      { staff_id: "dr-park", staff_type: "resident", start: "2025-03-11T07:00:00", end: "2025-03-11T19:00:00" },
+      { staff_id: "dr-park", staff_type: "resident", start: "2025-03-12T07:00:00", end: "2025-03-12T19:00:00" },
+      { staff_id: "dr-park", staff_type: "resident", start: "2025-03-13T07:00:00", end: "2025-03-13T19:00:00" },
+      { staff_id: "dr-park", staff_type: "resident", start: "2025-03-14T07:00:00", end: "2025-03-14T19:00:00" },
+      { staff_id: "dr-lopez", staff_type: "resident", start: "2025-03-10T08:00:00", end: "2025-03-10T20:00:00" },
+      { staff_id: "dr-lopez", staff_type: "resident", start: "2025-03-12T08:00:00", end: "2025-03-12T20:00:00" },
+      { staff_id: "dr-lopez", staff_type: "resident", start: "2025-03-14T08:00:00", end: "2025-03-14T20:00:00" },
+    ],
+  },
+  {
+    id: "backtoback", badge: "fail", label: "Violations",
+    name: "The Back-to-Back Nurse", who: "Hospital Publico, Spain",
+    info: "Elena has only 3 hours between shifts. Spain requires 12h rest.",
+    jurisdiction: "ES", scope: "public_health", flagged: "elena",
+    workers: [
+      { id: "elena", name: "Elena Rodriguez", role: "ICU Nurse", type: "statutory-personnel", color: C[0] },
+      { id: "maria-g", name: "Maria Garcia", role: "ICU Nurse", type: "statutory-personnel", color: C[1] },
+      { id: "pablo-f", name: "Pablo Fernandez", role: "ICU Nurse", type: "statutory-personnel", color: C[2] },
+    ],
+    shifts: [
+      { staff_id: "elena", staff_type: "statutory-personnel", start: "2025-03-10T08:00:00", end: "2025-03-10T20:00:00" },
+      { staff_id: "elena", staff_type: "statutory-personnel", start: "2025-03-10T23:00:00", end: "2025-03-11T11:00:00" },
+      { staff_id: "elena", staff_type: "statutory-personnel", start: "2025-03-13T08:00:00", end: "2025-03-13T20:00:00" },
+      { staff_id: "maria-g", staff_type: "statutory-personnel", start: "2025-03-10T08:00:00", end: "2025-03-10T20:00:00" },
+      { staff_id: "maria-g", staff_type: "statutory-personnel", start: "2025-03-12T08:00:00", end: "2025-03-12T20:00:00" },
+      { staff_id: "maria-g", staff_type: "statutory-personnel", start: "2025-03-14T08:00:00", end: "2025-03-14T20:00:00" },
+      { staff_id: "pablo-f", staff_type: "statutory-personnel", start: "2025-03-11T08:00:00", end: "2025-03-11T20:00:00" },
+      { staff_id: "pablo-f", staff_type: "statutory-personnel", start: "2025-03-13T08:00:00", end: "2025-03-13T20:00:00" },
+      { staff_id: "pablo-f", staff_type: "statutory-personnel", start: "2025-03-15T08:00:00", end: "2025-03-15T20:00:00" },
+    ],
+  },
+  {
+    id: "exhausted", badge: "fail", label: "Violations",
+    name: "The Exhausted MIR", who: "Hospital ICS, Catalonia",
+    info: "Dr. Vega has 5 on-call guards in March. ICS limits to 4/month.",
+    jurisdiction: "ES-CT", scope: "public_health", flagged: "dr-vega",
+    workers: [
+      { id: "dr-vega", name: "Dr. Carlos Vega", role: "MIR Resident", type: "statutory-personnel", color: C[0] },
+      { id: "dr-ruiz", name: "Dr. Laura Ruiz", role: "MIR Resident", type: "statutory-personnel", color: C[1] },
+    ],
+    shifts: [
+      { staff_id: "dr-vega", staff_type: "statutory-personnel", start: "2025-03-10T08:00:00", end: "2025-03-11T08:00:00", on_call: true },
+      { staff_id: "dr-vega", staff_type: "statutory-personnel", start: "2025-03-12T08:00:00", end: "2025-03-12T16:00:00" },
+      { staff_id: "dr-vega", staff_type: "statutory-personnel", start: "2025-03-13T08:00:00", end: "2025-03-14T08:00:00", on_call: true },
+      { staff_id: "dr-vega", staff_type: "statutory-personnel", start: "2025-03-15T08:00:00", end: "2025-03-16T08:00:00", on_call: true },
+      { staff_id: "dr-vega", staff_type: "statutory-personnel", start: "2025-03-17T08:00:00", end: "2025-03-18T08:00:00", on_call: true },
+      { staff_id: "dr-vega", staff_type: "statutory-personnel", start: "2025-03-20T08:00:00", end: "2025-03-21T08:00:00", on_call: true },
+      { staff_id: "dr-ruiz", staff_type: "statutory-personnel", start: "2025-03-11T08:00:00", end: "2025-03-12T08:00:00", on_call: true },
+      { staff_id: "dr-ruiz", staff_type: "statutory-personnel", start: "2025-03-14T08:00:00", end: "2025-03-15T08:00:00", on_call: true },
+      { staff_id: "dr-ruiz", staff_type: "statutory-personnel", start: "2025-03-18T08:00:00", end: "2025-03-19T08:00:00", on_call: true },
+    ],
+  },
+  {
+    id: "compliant", badge: "pass", label: "Compliant",
+    name: "The Compliant Week", who: "Memorial Hospital, California",
+    info: "Three ICU nurses with proper rest between rotations.",
+    jurisdiction: "US-CA", scope: "hospitals", flagged: null,
+    workers: [
+      { id: "sarah", name: "Sarah Chen", role: "RN, ICU", type: "nurse-rn", color: C[3] },
+      { id: "lisa", name: "Lisa Wang", role: "RN, ICU", type: "nurse-rn", color: C[4] },
+      { id: "mark", name: "Mark Davis", role: "RN, ICU", type: "nurse-rn", color: C[5] },
+    ],
+    shifts: [
+      { staff_id: "sarah", staff_type: "nurse-rn", unit_type: "icu", start: "2025-03-10T07:00:00", end: "2025-03-10T19:00:00" },
+      { staff_id: "sarah", staff_type: "nurse-rn", unit_type: "icu", start: "2025-03-12T07:00:00", end: "2025-03-12T19:00:00" },
+      { staff_id: "sarah", staff_type: "nurse-rn", unit_type: "icu", start: "2025-03-14T07:00:00", end: "2025-03-14T19:00:00" },
+      { staff_id: "lisa", staff_type: "nurse-rn", unit_type: "icu", start: "2025-03-11T07:00:00", end: "2025-03-11T19:00:00" },
+      { staff_id: "lisa", staff_type: "nurse-rn", unit_type: "icu", start: "2025-03-13T07:00:00", end: "2025-03-13T19:00:00" },
+      { staff_id: "lisa", staff_type: "nurse-rn", unit_type: "icu", start: "2025-03-15T07:00:00", end: "2025-03-15T19:00:00" },
+      { staff_id: "mark", staff_type: "nurse-rn", unit_type: "icu", start: "2025-03-10T19:00:00", end: "2025-03-11T07:00:00" },
+      { staff_id: "mark", staff_type: "nurse-rn", unit_type: "icu", start: "2025-03-12T19:00:00", end: "2025-03-13T07:00:00" },
+      { staff_id: "mark", staff_type: "nurse-rn", unit_type: "icu", start: "2025-03-14T19:00:00", end: "2025-03-15T07:00:00" },
+    ],
+  },
+];

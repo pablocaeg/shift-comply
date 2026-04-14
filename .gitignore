@@ -1,0 +1,8 @@
+coverage.out
+*.wasm
+web/wasm_exec.js
+website/public/shiftcomply.wasm
+website/public/wasm_exec.js
+website/.next
+website/out
+website/node_modules

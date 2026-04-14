@@ -1,0 +1,32 @@
+version: "2"
+linters:
+  enable:
+    - errname
+    - goconst
+    - gocyclo
+    - nakedret
+    - revive
+    - unconvert
+    - unparam
+  settings:
+    errcheck:
+      # CLI and API tools write to stdout/http.ResponseWriter where
+      # checking errors adds noise without value.
+      exclude-functions:
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - fmt.Printf
+        - (io.Writer).Write
+        - (*encoding/json.Encoder).Encode
+        - (*text/tabwriter.Writer).Flush
+        - (*flag.FlagSet).Parse
+    revive:
+      rules:
+        - name: blank-imports
+          disabled: true
+        - name: exported
+          disabled: true
+formatters:
+  enable:
+    - gofmt
+    - goimports
