@@ -109,66 +109,61 @@ export default function Home() {
     if (scenario) validate(jurisdiction, scenario.scope, next);
   };
 
-  // Auto-fix
+  // Auto-fix (all operations uid-based, no index splicing)
   const autoFix = (violation: Violation) => {
     const k = violation.rule_key;
     const sid = violation.staff_id;
-    const next = [...shifts];
+    let next = [...shifts];
+
+    const staffShifts = () => next.filter(s => s.staff_id === sid).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+    const removeByUid = (uid: string) => { next = next.filter(s => s._uid !== uid); };
+    const updateByUid = (uid: string, updates: Partial<Shift>) => { next = next.map(s => s._uid === uid ? { ...s, ...updates } : s); };
 
     if (k.includes("max-weekly") || k.includes("max-combined") || k.includes("max-ordinary") || k.includes("days-off") || k.includes("day-of-rest")) {
-      // Keep removing the last shift until the violation would be resolved
-      const excessHours = violation.actual - violation.limit;
-      let removed = 0;
-      while (removed < excessHours + 14) { // safety margin
-        const staffShifts = next.map((s, i) => ({ s, i })).filter(x => x.s.staff_id === sid).sort((a, b) => new Date(b.s.start).getTime() - new Date(a.s.start).getTime());
-        if (!staffShifts.length) break;
-        const dur = shiftDuration(staffShifts[0].s);
-        next.splice(staffShifts[0].i, 1);
-        removed += dur;
+      // Remove shifts from the end until excess is covered
+      let excess = violation.actual - violation.limit;
+      while (excess > 0) {
+        const ss = staffShifts();
+        if (!ss.length) break;
+        const last = ss[ss.length - 1];
+        excess -= shiftDuration(last);
+        removeByUid(last._uid!);
       }
 
     } else if (k.includes("rest-between") || k.includes("min-rest")) {
-      // Fix ALL rest gaps for this worker by cascading forward
-      const staffIndices = next.map((s, i) => ({ s, i })).filter(x => x.s.staff_id === sid).sort((a, b) => new Date(a.s.start).getTime() - new Date(b.s.start).getTime());
-
-      for (let j = 1; j < staffIndices.length; j++) {
-        const prevEnd = new Date(next[staffIndices[j - 1].i].end);
-        const curStart = new Date(next[staffIndices[j].i].start);
+      // Cascade: push every shift forward to maintain required rest
+      const ss = staffShifts();
+      for (let j = 1; j < ss.length; j++) {
+        const prevEnd = new Date(next.find(s => s._uid === ss[j - 1]._uid)!.end);
+        const cur = next.find(s => s._uid === ss[j]._uid)!;
+        const curStart = new Date(cur.start);
         const gap = (curStart.getTime() - prevEnd.getTime()) / 3600000;
-
         if (gap >= 0 && gap < violation.limit) {
-          const need = Math.ceil(violation.limit - gap);
-          const dur = shiftDuration(next[staffIndices[j].i]);
+          const dur = shiftDuration(cur);
           const newStart = new Date(prevEnd.getTime() + violation.limit * 3600000);
           const newEnd = new Date(newStart.getTime() + dur * 3600000);
-          next[staffIndices[j].i] = {
-            ...next[staffIndices[j].i],
-            start: toLocalISO(newStart),
-            end: toLocalISO(newEnd),
-          };
+          updateByUid(ss[j]._uid!, { start: toLocalISO(newStart), end: toLocalISO(newEnd) });
         }
       }
 
     } else if (k.includes("max-shift")) {
-      // Trim ALL over-long shifts for this worker
-      for (let i = 0; i < next.length; i++) {
-        if (next[i].staff_id !== sid) continue;
-        const dur = shiftDuration(next[i]);
-        if (dur > violation.limit) {
-          const nE = new Date(new Date(next[i].start).getTime() + violation.limit * 3600000);
-          next[i] = { ...next[i], end: toLocalISO(nE) };
+      // Trim all over-long shifts
+      for (const s of staffShifts()) {
+        if (shiftDuration(s) > violation.limit) {
+          const nE = new Date(new Date(s.start).getTime() + violation.limit * 3600000);
+          updateByUid(s._uid!, { end: toLocalISO(nE) });
         }
       }
 
     } else if (k.includes("guards") || k.includes("on-call")) {
       // Remove the last on-call shift
-      const idx = next.map((s, i) => ({ s, i })).filter(x => x.s.staff_id === sid && x.s.on_call).sort((a, b) => new Date(b.s.start).getTime() - new Date(a.s.start).getTime())[0]?.i;
-      if (idx !== undefined) next.splice(idx, 1);
+      const oncalls = staffShifts().filter(s => s.on_call);
+      if (oncalls.length) removeByUid(oncalls[oncalls.length - 1]._uid!);
 
     } else {
       // Fallback: remove the last shift
-      const idx = next.map((s, i) => ({ s, i })).filter(x => x.s.staff_id === sid).sort((a, b) => new Date(b.s.start).getTime() - new Date(a.s.start).getTime())[0]?.i;
-      if (idx !== undefined) next.splice(idx, 1);
+      const ss = staffShifts();
+      if (ss.length) removeByUid(ss[ss.length - 1]._uid!);
     }
 
     // Record the fix
