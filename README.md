@@ -7,7 +7,7 @@
 
 Open-source, machine-readable database of healthcare scheduling regulations across jurisdictions.
 
-Every regulation carries a real legal citation, an effective date, and is queryable by jurisdiction, staff type, and hospital unit. All data compiles into the binary. No database required.
+**[Live Demo](https://pablocaeg.github.io/shift-comply/)** | Every regulation carries a real legal citation, an effective date, and is queryable by jurisdiction, staff type, and hospital unit. All data compiles into the binary. No database required.
 
 ## The problem
 
