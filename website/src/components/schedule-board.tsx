@@ -115,10 +115,8 @@ export function ScheduleBoard({ scenario, shifts, report, fixedStaff, onCellClic
                       );
                     })}
 
-                    {!scenario.workers.some(w => cellData.has(`${w.id}|${d}`)) && (
-                      <button type="button" onClick={() => onCellClick(scenario.workers[0].id, d)}
-                        className="flex-1 min-h-[24px] flex items-center justify-center text-neutral-200 text-[11px] opacity-0 hover:opacity-100 transition-opacity rounded hover:bg-neutral-100">+</button>
-                    )}
+                    <button type="button" onClick={() => onCellClick(scenario.workers[0].id, d)}
+                      className="min-h-[20px] flex items-center justify-center text-neutral-300 text-[10px] opacity-0 hover:opacity-100 transition-opacity rounded hover:bg-neutral-100 mt-auto">+</button>
                   </div>
                 </div>
               );
