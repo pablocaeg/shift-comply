@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { loadWasm, isLoaded } from "@/lib/wasm";
 import { SCENARIOS } from "@/lib/scenarios";
+import { addDays, hoursBetween, formatDateTime } from "@/lib/dates";
 import type { Scenario, Shift, Jurisdiction, Rule, ComplianceReport, Violation } from "@/lib/types";
 import { tagShifts, nextUid } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -13,14 +14,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ScheduleBoard } from "@/components/schedule-board";
 import { ViolationList, type FixRecord } from "@/components/violation-list";
 
-// ---- Helpers (no Date objects for formatting) ----
+// ---- Helpers ----
 function shiftHours(s: Shift): number {
-  return (new Date(s.end).getTime() - new Date(s.start).getTime()) / 3600000;
-}
-
-function localISO(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+  return hoursBetween(s.start, s.end);
 }
 
 // ---- Main page ----
@@ -134,14 +130,14 @@ export default function Home() {
           const dur = shiftHours(cur);
           const newStart = new Date(new Date(prev.end).getTime() + v.limit * 3600000);
           const newEnd = new Date(newStart.getTime() + dur * 3600000);
-          patch(cur._uid!, { start: localISO(newStart), end: localISO(newEnd) });
+          patch(cur._uid!, { start: formatDateTime(newStart), end: formatDateTime(newEnd) });
         }
       }
     } else if (k.includes("max-shift")) {
       for (const s of staff()) {
         if (shiftHours(s) > v.limit) {
           const trimEnd = new Date(new Date(s.start).getTime() + v.limit * 3600000);
-          patch(s._uid!, { end: localISO(trimEnd) });
+          patch(s._uid!, { end: formatDateTime(trimEnd) });
         }
       }
     } else if (k.includes("guards") || k.includes("on-call")) {
@@ -238,6 +234,11 @@ export default function Home() {
                 scenario={scenario} shifts={shifts} report={report}
                 onCellClick={(wid, date) => setAddTarget({ workerId: wid, date })}
                 onShiftClick={uid => setEditUid(uid)}
+                onMoveShift={(uid, toWorkerId) => {
+                  const w = scenario.workers.find(x => x.id === toWorkerId);
+                  if (!w) return;
+                  applyShifts(shifts.map(s => s._uid === uid ? { ...s, staff_id: toWorkerId, staff_type: w.type } : s));
+                }}
               />
 
               <div className="mt-4">
@@ -299,13 +300,7 @@ function ShiftForm({ shift, workerName, onSave, onDelete, onCancel }: {
 
   function save() {
     const dateStr = shift.start.slice(0, 10);
-    let endDate = dateStr;
-    if (end <= start) {
-      // Crosses midnight: compute next day using local date math
-      const d = new Date(`${dateStr}T12:00:00`); // noon to avoid DST edge
-      d.setDate(d.getDate() + 1);
-      endDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    }
+    const endDate = end <= start ? addDays(dateStr, 1) : dateStr;
     onSave({ ...shift, start: `${dateStr}T${start}:00`, end: `${endDate}T${end}:00`, on_call: onCall });
   }
 
