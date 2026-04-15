@@ -22,19 +22,33 @@ export function applyFix(shifts: Shift[], violation: Violation, workers: Worker[
     next = next.map(s => s._uid === uid ? { ...s, ...updates } : s);
   };
 
-  // Weekly hours exceeded: shorten the longest shifts
+  // Weekly hours exceeded: shorten the longest shifts to reduce total hours
   if (k.includes("max-weekly") || k.includes("max-combined") || k.includes("max-ordinary")) {
-    const excessPerWeek = Math.ceil(violation.actual - violation.limit);
-    const ss = staffShifts(sid).sort((a, b) => shiftHours(b) - shiftHours(a));
-    for (const s of ss) {
+    // violation.actual is the averaged weekly hours. We need to figure out total excess.
+    const ss = staffShifts(sid);
+    const totalHours = ss.reduce((sum, s) => sum + shiftHours(s), 0);
+    // Estimate weeks from the date range
+    const firstMs = new Date(ss[0].start).getTime();
+    const lastMs = new Date(ss[ss.length - 1].end).getTime();
+    const spanWeeks = Math.max(1, (lastMs - firstMs) / (7 * 86400000));
+    const targetTotal = violation.limit * spanWeeks;
+    let toRemove = Math.ceil(totalHours - targetTotal);
+    if (toRemove <= 0) toRemove = Math.ceil(violation.actual - violation.limit); // fallback
+
+    // Trim longest shifts first, keeping at least 6h each
+    const sorted = [...ss].sort((a, b) => shiftHours(b) - shiftHours(a));
+    let removed = 0;
+    for (const s of sorted) {
+      if (removed >= toRemove) break;
       const dur = shiftHours(s);
-      const cut = Math.min(dur - 6, excessPerWeek);
+      const cut = Math.min(dur - 6, toRemove - removed);
       if (cut > 0) {
         const trimEnd = new Date(new Date(s.start).getTime() + (dur - cut) * 3600000);
         patch(s._uid!, { end: formatDateTime(trimEnd) });
+        removed += cut;
       }
     }
-    return { shifts: next, description: `Shortened shifts by ${excessPerWeek}h each to meet ${violation.limit}h/week limit` };
+    return { shifts: next, description: `Reduced ${Math.round(removed)} total hours across shifts to meet ${violation.limit}h/week average` };
   }
 
   // Days off: remove the shortest shift

@@ -6,19 +6,14 @@ import "sync"
 // with hyphenated subdivision codes (e.g., "US-CA", "ES-MD").
 type Code string
 
-// Jurisdiction codes.
+// Jurisdiction codes for implemented jurisdictions.
 const (
 	US   Code = "US"
 	USCA Code = "US-CA"
-	USNY Code = "US-NY"
-	USTX Code = "US-TX"
-	USFL Code = "US-FL"
-	USMA Code = "US-MA"
 	EU   Code = "EU"
 	ES   Code = "ES"
 	ESMD Code = "ES-MD"
 	ESCT Code = "ES-CT"
-	ESAN Code = "ES-AN"
 )
 
 // JurisdictionType classifies the hierarchical level of a jurisdiction.

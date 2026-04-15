@@ -26,7 +26,13 @@ linters:
           disabled: true
         - name: exported
           disabled: true
+  exclusions:
+    paths:
+      - website
 formatters:
   enable:
     - gofmt
     - goimports
+  exclusions:
+    paths:
+      - website

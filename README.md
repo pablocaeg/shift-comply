@@ -9,6 +9,8 @@ Open-source, machine-readable database of healthcare scheduling regulations acro
 
 **[Live Demo](https://pablocaeg.github.io/shift-comply/)** | Every regulation carries a real legal citation, an effective date, and is queryable by jurisdiction, staff type, and hospital unit. All data compiles into the binary. No database required.
 
+> **Adding a new jurisdiction?** Use the [new-jurisdiction agent](.claude/agents/README.md). It researches the real laws, presents findings for your review, then generates the complete Go package with tests. Run: `/agents/new-jurisdiction Add France`
+
 ## The problem
 
 Healthcare labor laws vary enormously across jurisdictions:
