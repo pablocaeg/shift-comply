@@ -101,14 +101,16 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
               return (
                 <tr key={worker.id} className={flagged ? "bg-red-50/30" : "hover:bg-neutral-50/50"}>
                   {/* Name */}
-                  <td className={`p-2 pl-4 border-b border-neutral-100 sticky left-0 z-10 bg-white ${flagged ? "border-l-[3px] border-l-red-400 !bg-red-50/50" : ""}`}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{ background: worker.color }} />
-                      <div className="min-w-0">
-                        <div className={`text-[12px] font-semibold leading-tight truncate ${flagged ? "text-red-700" : ""}`}>{worker.name}</div>
-                        <div className="text-[9px] text-neutral-400">{worker.role}</div>
+                  <td className={`p-0 border-b border-neutral-100 sticky left-0 z-10 ${flagged ? "bg-red-50" : "bg-white"}`}>
+                    <div className="flex items-center gap-0 h-full min-h-[44px]">
+                      <div className="w-1 self-stretch shrink-0" style={{ backgroundColor: flagged ? "#ef4444" : worker.color }} />
+                      <div className="flex items-center gap-2 px-3 py-2 flex-1 min-w-0">
+                        <div className="min-w-0">
+                          <div className={`text-[12px] font-semibold leading-tight truncate ${flagged ? "text-red-700" : ""}`}>{worker.name}</div>
+                          <div className="text-[9px] text-neutral-400">{worker.role}</div>
+                        </div>
+                        {flagged && <Badge variant="destructive" className="text-[8px] px-1 py-0 h-3.5 shrink-0 ml-auto">{vc}</Badge>}
                       </div>
-                      {flagged && <Badge variant="destructive" className="text-[8px] px-1 py-0 h-3.5 shrink-0">{vc}</Badge>}
                     </div>
                   </td>
 
@@ -121,7 +123,7 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
                     const hasShift = cell && cell.hours > 0;
 
                     return (
-                      <td key={d} className={`border-b border-neutral-50 p-0.5 text-center align-middle ${isWe ? "bg-neutral-50/40" : ""} ${isWeekBorder ? "border-l-2 border-l-neutral-300" : "border-l border-l-neutral-50"}`}>
+                      <td key={d} className={`border-b border-neutral-100 text-center align-middle p-0 ${isWeekBorder ? "border-l-2 border-l-neutral-200" : "border-l border-l-neutral-100"}`}>
                         <button
                           type="button"
                           onClick={() => {
@@ -129,12 +131,11 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
                             else onCellClick(worker.id, d);
                           }}
                           className={`
-                            w-full rounded-md text-[11px] font-semibold tabular-nums transition-all
-                            ${hasShift ? "py-1.5 cursor-pointer" : "py-1.5 cursor-pointer opacity-0 hover:opacity-100"}
-                            ${!hasShift ? "text-neutral-300 hover:bg-neutral-100" : ""}
-                            ${hasShift && !cell.onCall && !flagged ? "text-white hover:brightness-110" : ""}
-                            ${hasShift && cell.onCall && !flagged ? "text-white hover:brightness-110" : ""}
-                            ${hasShift && flagged ? "text-white ring-1 ring-red-400 ring-offset-1" : ""}
+                            w-full h-full min-h-[44px] text-[11px] font-semibold tabular-nums transition-all cursor-pointer
+                            ${!hasShift && isWe ? "bg-neutral-50" : ""}
+                            ${!hasShift && !isWe ? "bg-white hover:bg-neutral-50" : ""}
+                            ${hasShift ? "text-white hover:brightness-110" : "text-neutral-300 hover:text-neutral-400"}
+                            ${hasShift && flagged ? "ring-2 ring-inset ring-red-500" : ""}
                           `}
                           style={hasShift ? {
                             backgroundColor: cell.onCall ? "#f59e0b" : worker.color,
@@ -142,11 +143,11 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
                         >
                           {hasShift ? (
                             <>
-                              <div>{Math.round(cell.hours)}h</div>
-                              {cell.onCall && <div className="text-[7px] font-bold uppercase opacity-70 leading-none mt-0.5">guard</div>}
+                              <div className="text-[12px]">{Math.round(cell.hours)}h</div>
+                              {cell.onCall && <div className="text-[7px] font-bold uppercase opacity-60 leading-none mt-0.5">guard</div>}
                             </>
                           ) : (
-                            <div className="text-[10px]">+</div>
+                            <div className="text-[10px] opacity-0 hover:opacity-100 transition-opacity">+</div>
                           )}
                         </button>
                       </td>
