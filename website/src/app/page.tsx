@@ -235,11 +235,6 @@ export default function Home() {
                 fixedStaff={new Set(fixes.map(f => f.staffId))}
                 onCellClick={(wid, date) => setAddTarget({ workerId: wid, date })}
                 onShiftClick={uid => setEditUid(uid)}
-                onMoveShift={(uid, toWorkerId) => {
-                  const w = scenario.workers.find(x => x.id === toWorkerId);
-                  if (!w) return;
-                  applyShifts(shifts.map(s => s._uid === uid ? { ...s, staff_id: toWorkerId, staff_type: w.type } : s));
-                }}
               />
 
               <div className="mt-4">
@@ -261,6 +256,7 @@ export default function Home() {
             <ShiftForm
               shift={editShift}
               workerName={scenario?.workers.find(w => w.id === editShift.staff_id)?.name || ""}
+              workers={scenario?.workers}
               onSave={s => saveShift(editUid!, s)}
               onDelete={() => removeShift(editUid!)}
               onCancel={() => setEditUid(null)}
@@ -291,8 +287,8 @@ export default function Home() {
 }
 
 // ---- Shift Form ----
-function ShiftForm({ shift, workerName, onSave, onDelete, onCancel }: {
-  shift: Shift; workerName: string;
+function ShiftForm({ shift, workerName, workers, onSave, onDelete, onCancel }: {
+  shift: Shift; workerName: string; workers?: { id: string; name: string; type: string }[];
   onSave: (s: Shift) => void; onDelete?: () => void; onCancel: () => void;
 }) {
   const startTime = shift.start.slice(11, 16) || "08:00";
@@ -303,10 +299,19 @@ function ShiftForm({ shift, workerName, onSave, onDelete, onCancel }: {
   const [start, setStart] = useState(startTime);
   const [end, setEnd] = useState(endTime);
   const [onCall, setOnCall] = useState(shift.on_call || false);
+  const [assignTo, setAssignTo] = useState(shift.staff_id);
 
   function save() {
     const eDate = end <= start ? addDays(dateStr, 1) : dateStr;
-    onSave({ ...shift, start: `${dateStr}T${start}:00`, end: `${eDate}T${end}:00`, on_call: onCall });
+    const targetWorker = workers?.find(w => w.id === assignTo);
+    onSave({
+      ...shift,
+      staff_id: assignTo,
+      staff_type: targetWorker?.type || shift.staff_type,
+      start: `${dateStr}T${start}:00`,
+      end: `${eDate}T${end}:00`,
+      on_call: onCall,
+    });
   }
 
   return (
@@ -332,6 +337,17 @@ function ShiftForm({ shift, workerName, onSave, onDelete, onCancel }: {
             className="w-full font-mono text-base border border-neutral-200 rounded-lg px-3 py-2.5 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white focus:border-transparent transition-all" />
         </div>
       </div>
+
+      {/* Assign to worker */}
+      {workers && workers.length > 1 && (
+        <div>
+          <label className="text-[11px] font-medium text-neutral-500 uppercase tracking-wide mb-1.5 block">Assigned to</label>
+          <select value={assignTo} onChange={e => setAssignTo(e.target.value)}
+            className="w-full text-sm border border-neutral-200 rounded-lg px-3 py-2.5 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white focus:border-transparent transition-all">
+            {workers.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
+          </select>
+        </div>
+      )}
 
       {/* On-call toggle */}
       <label className="flex items-center gap-3 p-3 rounded-lg border border-neutral-200 cursor-pointer select-none hover:bg-neutral-50 transition-colors">
