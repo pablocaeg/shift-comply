@@ -91,11 +91,12 @@ export function ScheduleBoard({ scenario, shifts, report, fixedStaff, onCellClic
                       const sh = shifts.find(s => s._uid === cell.uids[0]);
                       const timeStr = sh ? `${sh.start.slice(11,16)}\u2013${sh.end.slice(11,16)}` : "";
 
-                      let bg = w.color;
-                      let extraClass = "";
-                      if (flagged) { bg = "#ef4444"; extraClass = "ring-2 ring-red-600 ring-offset-1 shadow-sm shadow-red-200 animate-pulse"; }
+                      // Color logic: on-call always amber, then overlay violation/fixed ring
+                      const isGuard = cell.onCall;
+                      let bg = isGuard ? "#f59e0b" : w.color;
+                      let extraClass = isGuard ? "bg-stripes" : "";
+                      if (flagged) { extraClass += " ring-2 ring-red-600 ring-offset-1 shadow-sm shadow-red-200"; }
                       else if (fixed) { bg = "#10b981"; extraClass = "ring-2 ring-emerald-400 ring-offset-1"; }
-                      else if (cell.onCall) { bg = "#f59e0b"; extraClass = "bg-stripes border border-amber-600/30"; }
 
                       return (
                         <button key={w.id} type="button"
@@ -108,7 +109,7 @@ export function ScheduleBoard({ scenario, shifts, report, fixedStaff, onCellClic
                             {fixed && <span className="text-[9px] shrink-0">&#10003;</span>}
                             <span className="truncate">{lastName}</span>
                             <span className="tabular-nums opacity-70 ml-auto shrink-0">{Math.round(cell.hours)}h</span>
-                            {cell.onCall && !flagged && !fixed && <span className="text-[7px] font-bold opacity-60 shrink-0">G</span>}
+                            {cell.onCall && <span className="text-[7px] font-bold opacity-60 shrink-0">G</span>}
                           </div>
                           <div className="text-[8px] opacity-50 tabular-nums">{timeStr}</div>
                         </button>
