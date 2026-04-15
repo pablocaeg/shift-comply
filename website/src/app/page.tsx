@@ -114,20 +114,20 @@ export default function Home() {
 
     if (k.includes("max-weekly") || k.includes("max-combined") || k.includes("max-ordinary")) {
       // Shorten the longest shifts to reduce weekly hours
-      const excess = Math.ceil(v.actual - v.limit);
+      // v.actual and v.limit are weekly averages, so we need to reduce EACH long shift
+      const excessPerWeek = Math.ceil(v.actual - v.limit);
       const ss = staffShifts(sid).sort((a, b) => shiftHours(b) - shiftHours(a)); // longest first
-      let reduced = 0;
+      let totalReduced = 0;
       for (const s of ss) {
-        if (reduced >= excess) break;
         const dur = shiftHours(s);
-        const cut = Math.min(dur - 4, excess - reduced); // don't go below 4h shifts
+        const cut = Math.min(dur - 6, excessPerWeek); // trim each long shift, keep at least 6h
         if (cut > 0) {
           const trimEnd = new Date(new Date(s.start).getTime() + (dur - cut) * 3600000);
           patch(s._uid!, { end: formatDateTime(trimEnd) });
-          reduced += cut;
+          totalReduced += cut;
         }
       }
-      fixDesc = `Shortened shifts by ${reduced}h to meet ${v.limit}h/week limit`;
+      fixDesc = `Shortened ${ss.filter(s => shiftHours(s) > 6).length} shifts by ${excessPerWeek}h each to meet ${v.limit}h/week limit`;
 
     } else if (k.includes("days-off") || k.includes("day-of-rest")) {
       // Remove the shortest shift to create a day off
