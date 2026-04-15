@@ -329,6 +329,7 @@ export default function Home() {
               <ShiftForm
                 shift={{ staff_id: addTarget.workerId, staff_type: w?.type || "", start: `${addTarget.date}T08:00:00`, end: `${addTarget.date}T20:00:00` }}
                 workerName={w?.name || ""}
+                workers={scenario.workers}
                 onSave={createShift}
                 onCancel={() => setAddTarget(null)}
               />
