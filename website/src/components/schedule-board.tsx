@@ -11,6 +11,7 @@ interface Props {
   scenario: Scenario;
   shifts: Shift[];
   report: ComplianceReport;
+  fixedStaff: Set<string>; // workers whose violations were fixed
   onCellClick: (workerId: string, date: string) => void;
   onShiftClick: (uid: string) => void;
   onMoveShift: (uid: string, toWorkerId: string) => void;
@@ -30,7 +31,7 @@ function WorkerDropZone({ workerId, date, children, isOver }: { workerId: string
   );
 }
 
-export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftClick, onMoveShift }: Props) {
+export function ScheduleBoard({ scenario, shifts, report, fixedStaff, onCellClick, onShiftClick, onMoveShift }: Props) {
   const [dragUid, setDragUid] = useState<string | null>(null);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const violatedStaff = useMemo(() => new Set((report.violations || []).map(v => v.staff_id)), [report]);
@@ -100,7 +101,16 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
               {week.map(d => {
                 const isWe = dayOfWeek(d) === 0 || dayOfWeek(d) === 6;
                 return (
-                  <div key={d} className={`rounded-lg border min-h-[90px] flex flex-col ${isWe ? "border-neutral-100 bg-neutral-50/40" : "border-neutral-200 bg-white"}`}>
+                  <div key={d} className={`rounded-lg border min-h-[90px] flex flex-col transition-colors ${
+                    (() => {
+                      const hasViolation = scenario.workers.some(w => violatedStaff.has(w.id) && cellData.has(`${w.id}|${d}`));
+                      const hasFixed = scenario.workers.some(w => fixedStaff.has(w.id) && !violatedStaff.has(w.id) && cellData.has(`${w.id}|${d}`));
+                      if (hasViolation) return "border-red-300 bg-red-50/30";
+                      if (hasFixed) return "border-emerald-200 bg-emerald-50/20";
+                      if (isWe) return "border-neutral-100 bg-neutral-50/40";
+                      return "border-neutral-200 bg-white";
+                    })()
+                  }`}>
                     <div className="px-2 pt-1.5 flex items-baseline justify-between">
                       <span className={`text-[11px] font-semibold tabular-nums ${isWe ? "text-neutral-300" : "text-neutral-500"}`}>{dayNum(d)}</span>
                       {dayNum(d) <= 7 && wi === 0 && <span className="text-[8px] font-medium text-neutral-400 uppercase">{monthShort(d)}</span>}
@@ -118,6 +128,7 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
                           );
                         }
                         const flagged = violatedStaff.has(w.id);
+                        const fixed = fixedStaff.has(w.id) && !flagged;
                         const lastName = w.name.split(" ").pop() || w.name;
                         const sh = shifts.find(s => s._uid === cell.uids[0]);
                         const timeStr = sh ? `${sh.start.slice(11,16)}\u2013${sh.end.slice(11,16)}` : "";
@@ -131,12 +142,16 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
                                   w-full rounded-[5px] px-1.5 py-1 text-left
                                   cursor-pointer select-none transition-all
                                   hover:brightness-110 active:scale-[0.97]
-                                  ${flagged ? "ring-1.5 ring-red-500 ring-offset-0.5" : ""}
-                                  ${cell.onCall ? "bg-amber-500 text-white border border-amber-600/30 bg-stripes" : "text-white"}
+                                  ${flagged ? "bg-red-500 text-white ring-2 ring-red-600 ring-offset-1 shadow-sm shadow-red-200 animate-pulse" : ""}
+                                  ${fixed ? "ring-2 ring-emerald-400 ring-offset-1 shadow-sm shadow-emerald-100" : ""}
+                                  ${!flagged && !fixed && cell.onCall ? "bg-amber-500 text-white border border-amber-600/30 bg-stripes" : ""}
+                                  ${!flagged && !fixed && !cell.onCall ? "text-white" : ""}
                                 `}
-                                style={cell.onCall ? undefined : { backgroundColor: w.color }}
+                                style={flagged ? undefined : (cell.onCall && !fixed ? undefined : { backgroundColor: fixed ? "#10b981" : w.color })}
                               >
                                 <div className="flex items-center gap-1 text-[10px] font-semibold">
+                                  {flagged && <span className="text-[8px] shrink-0">&#9888;</span>}
+                                  {fixed && <span className="text-[8px] shrink-0">&#10003;</span>}
                                   <span className="truncate">{lastName}</span>
                                   <span className="tabular-nums opacity-70 ml-auto shrink-0">{Math.round(cell.hours)}h</span>
                                   {cell.onCall && <span className="text-[7px] font-bold opacity-60 shrink-0">G</span>}
@@ -163,12 +178,18 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
 
         {/* Legend */}
         <div className="flex items-center gap-4 flex-wrap pt-4 px-1">
-          {scenario.workers.map(w => (
-            <div key={w.id} className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded" style={{ backgroundColor: w.color }} />
-              <span className={`text-[11px] ${violatedStaff.has(w.id) ? "text-red-600 font-semibold" : "text-neutral-500"}`}>{w.name}</span>
-            </div>
-          ))}
+          {scenario.workers.map(w => {
+            const f = violatedStaff.has(w.id);
+            const fx = fixedStaff.has(w.id) && !f;
+            return (
+              <div key={w.id} className="flex items-center gap-1.5">
+                <div className={`w-3 h-3 rounded ${f ? "bg-red-500" : fx ? "bg-emerald-500" : ""}`} style={f || fx ? undefined : { backgroundColor: w.color }} />
+                <span className={`text-[11px] ${f ? "text-red-600 font-semibold" : fx ? "text-emerald-600 font-semibold" : "text-neutral-500"}`}>
+                  {w.name} {f && "- violations"} {fx && "- fixed"}
+                </span>
+              </div>
+            );
+          })}
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded bg-amber-500 bg-stripes" />
             <span className="text-[11px] text-neutral-500">On-call guard</span>

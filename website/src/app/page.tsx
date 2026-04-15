@@ -232,6 +232,7 @@ export default function Home() {
 
               <ScheduleBoard
                 scenario={scenario} shifts={shifts} report={report}
+                fixedStaff={new Set(fixes.map(f => f.staffId))}
                 onCellClick={(wid, date) => setAddTarget({ workerId: wid, date })}
                 onShiftClick={uid => setEditUid(uid)}
                 onMoveShift={(uid, toWorkerId) => {
