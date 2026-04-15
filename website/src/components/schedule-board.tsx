@@ -18,22 +18,21 @@ interface Props {
 
 function DraggablePill({ uid, children }: { uid: string; children: React.ReactNode }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: uid });
+  return <div ref={setNodeRef} {...listeners} {...attributes} className={isDragging ? "opacity-20" : ""}>{children}</div>;
+}
+
+function WorkerDropZone({ workerId, date, children, isOver }: { workerId: string; date: string; children?: React.ReactNode; isOver?: boolean }) {
+  const { setNodeRef, isOver: over } = useDroppable({ id: `drop|${workerId}|${date}` });
   return (
-    <div ref={setNodeRef} {...listeners} {...attributes} className={isDragging ? "opacity-20 scale-95" : ""}>
+    <div ref={setNodeRef} className={`rounded transition-colors ${(over || isOver) ? "bg-blue-100 ring-1 ring-blue-300" : ""}`}>
       {children}
     </div>
   );
 }
 
-function DroppableDay({ id, children, className }: { id: string; children: React.ReactNode; className?: string }) {
-  const { setNodeRef, isOver } = useDroppable({ id });
-  return <div ref={setNodeRef} className={`${className} ${isOver ? "!bg-blue-50 !border-blue-300" : ""}`}>{children}</div>;
-}
-
 export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftClick, onMoveShift }: Props) {
   const [dragUid, setDragUid] = useState<string | null>(null);
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
-
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   const violatedStaff = useMemo(() => new Set((report.violations || []).map(v => v.staff_id)), [report]);
 
   const weeks = useMemo(() => {
@@ -63,9 +62,7 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
         if (h <= 0) continue;
         const key = `${sh.staff_id}|${d}`;
         const ex = map.get(key) || { hours: 0, onCall: false, uids: [] };
-        ex.hours += h;
-        if (sh.on_call) ex.onCall = true;
-        ex.uids.push(sh._uid || "");
+        ex.hours += h; if (sh.on_call) ex.onCall = true; ex.uids.push(sh._uid || "");
         map.set(key, ex);
       }
     }
@@ -75,75 +72,89 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
   const dragShift = dragUid ? shifts.find(s => s._uid === dragUid) : null;
   const dragWorker = dragShift ? scenario.workers.find(w => w.id === dragShift.staff_id) : null;
 
+  function handleDragEnd(e: DragEndEvent) {
+    setDragUid(null);
+    if (!e.over || !dragUid) return;
+    const parts = (e.over.id as string).split("|");
+    if (parts[0] === "drop" && parts[1]) {
+      const targetWorker = parts[1];
+      const sourceShift = shifts.find(s => s._uid === dragUid);
+      if (sourceShift && sourceShift.staff_id !== targetWorker) {
+        onMoveShift(dragUid, targetWorker);
+      }
+    }
+  }
+
   return (
-    <DndContext sensors={sensors} onDragStart={(e: DragStartEvent) => setDragUid(e.active.id as string)} onDragEnd={(e: DragEndEvent) => { setDragUid(null); if (e.over) { const tid = (e.over.id as string).split("|")[0]; if (tid && dragUid) onMoveShift(dragUid, tid); } }}>
+    <DndContext sensors={sensors} onDragStart={(e: DragStartEvent) => setDragUid(e.active.id as string)} onDragEnd={handleDragEnd}>
       <div>
-        {/* Day headers */}
+        {/* Headers */}
         <div className="grid grid-cols-7 gap-1 mb-1">
           {COLS.map(c => <div key={c} className="text-center text-[10px] font-semibold text-neutral-400 uppercase tracking-wider py-1">{c}</div>)}
         </div>
 
-        {/* Calendar weeks */}
+        {/* Weeks */}
         <div className="space-y-1">
           {weeks.map((week, wi) => (
             <div key={wi} className="grid grid-cols-7 gap-1">
               {week.map(d => {
                 const isWe = dayOfWeek(d) === 0 || dayOfWeek(d) === 6;
-                const hasPills = scenario.workers.some(w => cellData.has(`${w.id}|${d}`));
-
                 return (
-                  <DroppableDay key={d} id={`${scenario.workers[0]?.id || ""}|${d}`}
-                    className={`rounded-lg border min-h-[90px] flex flex-col transition-colors ${isWe ? "border-neutral-100 bg-neutral-50/40" : "border-neutral-200 bg-white"}`}>
-                    {/* Date */}
+                  <div key={d} className={`rounded-lg border min-h-[90px] flex flex-col ${isWe ? "border-neutral-100 bg-neutral-50/40" : "border-neutral-200 bg-white"}`}>
                     <div className="px-2 pt-1.5 flex items-baseline justify-between">
                       <span className={`text-[11px] font-semibold tabular-nums ${isWe ? "text-neutral-300" : "text-neutral-500"}`}>{dayNum(d)}</span>
                       {dayNum(d) <= 7 && wi === 0 && <span className="text-[8px] font-medium text-neutral-400 uppercase">{monthShort(d)}</span>}
                     </div>
 
-                    {/* Shift pills */}
                     <div className="px-1 pb-1 flex flex-col gap-[3px] flex-1 mt-0.5">
                       {scenario.workers.map(w => {
                         const cell = cellData.get(`${w.id}|${d}`);
-                        if (!cell || cell.hours <= 0) return null;
+                        if (!cell || cell.hours <= 0) {
+                          // Empty drop zone for this worker on this day
+                          return (
+                            <WorkerDropZone key={w.id} workerId={w.id} date={d}>
+                              <div className="h-0" /> {/* invisible drop target */}
+                            </WorkerDropZone>
+                          );
+                        }
                         const flagged = violatedStaff.has(w.id);
                         const lastName = w.name.split(" ").pop() || w.name;
+                        const sh = shifts.find(s => s._uid === cell.uids[0]);
+                        const timeStr = sh ? `${sh.start.slice(11,16)}\u2013${sh.end.slice(11,16)}` : "";
 
                         return (
-                          <DraggablePill key={w.id} uid={cell.uids[0]}>
-                            <button type="button"
-                              onClick={e => { e.stopPropagation(); if (cell.uids[0]) onShiftClick(cell.uids[0]); }}
-                              className={`
-                                w-full rounded-[5px] px-1.5 py-1 text-[10px] font-semibold
-                                flex flex-col cursor-pointer select-none
-                                transition-all hover:brightness-110 active:scale-[0.97]
-                                ${flagged ? "ring-1.5 ring-red-500 ring-offset-0.5" : ""}
-                                ${cell.onCall
-                                  ? "bg-amber-500 text-white border border-amber-600/30 bg-[repeating-linear-gradient(135deg,transparent,transparent_3px,rgba(255,255,255,0.12)_3px,rgba(255,255,255,0.12)_6px)]"
-                                  : "text-white"}
-                              `}
-                              style={cell.onCall ? undefined : { backgroundColor: w.color }}
-                            >
-                              <div className="flex items-center gap-1 w-full">
-                                <span className="truncate">{lastName}</span>
-                                <span className="tabular-nums opacity-70 ml-auto shrink-0">{Math.round(cell.hours)}h</span>
-                                {cell.onCall && <span className="text-[7px] font-bold opacity-60 shrink-0">G</span>}
-                              </div>
-                              <div className="text-[8px] opacity-50 tabular-nums">
-                                {(() => { const sh = shifts.find(s => s._uid === cell.uids[0]); return sh ? `${sh.start.slice(11,16)}\u2013${sh.end.slice(11,16)}` : ""; })()}
-                              </div>
-                            </button>
-                          </DraggablePill>
+                          <WorkerDropZone key={w.id} workerId={w.id} date={d}>
+                            <DraggablePill uid={cell.uids[0]}>
+                              <button type="button"
+                                onClick={e => { e.stopPropagation(); if (cell.uids[0]) onShiftClick(cell.uids[0]); }}
+                                className={`
+                                  w-full rounded-[5px] px-1.5 py-1 text-left
+                                  cursor-pointer select-none transition-all
+                                  hover:brightness-110 active:scale-[0.97]
+                                  ${flagged ? "ring-1.5 ring-red-500 ring-offset-0.5" : ""}
+                                  ${cell.onCall ? "bg-amber-500 text-white border border-amber-600/30 bg-stripes" : "text-white"}
+                                `}
+                                style={cell.onCall ? undefined : { backgroundColor: w.color }}
+                              >
+                                <div className="flex items-center gap-1 text-[10px] font-semibold">
+                                  <span className="truncate">{lastName}</span>
+                                  <span className="tabular-nums opacity-70 ml-auto shrink-0">{Math.round(cell.hours)}h</span>
+                                  {cell.onCall && <span className="text-[7px] font-bold opacity-60 shrink-0">G</span>}
+                                </div>
+                                <div className="text-[8px] opacity-50 tabular-nums">{timeStr}</div>
+                              </button>
+                            </DraggablePill>
+                          </WorkerDropZone>
                         );
                       })}
 
-                      {!hasPills && (
+                      {/* Add button if no shifts at all */}
+                      {!scenario.workers.some(w => cellData.has(`${w.id}|${d}`)) && (
                         <button type="button" onClick={() => onCellClick(scenario.workers[0].id, d)}
-                          className="flex-1 min-h-[24px] flex items-center justify-center text-neutral-200 text-[11px] opacity-0 hover:opacity-100 transition-opacity rounded hover:bg-neutral-100">
-                          +
-                        </button>
+                          className="flex-1 min-h-[24px] flex items-center justify-center text-neutral-200 text-[11px] opacity-0 hover:opacity-100 transition-opacity rounded hover:bg-neutral-100">+</button>
                       )}
                     </div>
-                  </DroppableDay>
+                  </div>
                 );
               })}
             </div>
@@ -155,13 +166,11 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
           {scenario.workers.map(w => (
             <div key={w.id} className="flex items-center gap-1.5">
               <div className="w-3 h-3 rounded" style={{ backgroundColor: w.color }} />
-              <span className={`text-[11px] ${violatedStaff.has(w.id) ? "text-red-600 font-semibold" : "text-neutral-500"}`}>
-                {w.name}
-              </span>
+              <span className={`text-[11px] ${violatedStaff.has(w.id) ? "text-red-600 font-semibold" : "text-neutral-500"}`}>{w.name}</span>
             </div>
           ))}
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-amber-500 bg-[repeating-linear-gradient(135deg,transparent,transparent_2px,rgba(255,255,255,0.2)_2px,rgba(255,255,255,0.2)_4px)]" />
+            <div className="w-3 h-3 rounded bg-amber-500 bg-stripes" />
             <span className="text-[11px] text-neutral-500">On-call guard</span>
           </div>
         </div>
@@ -169,7 +178,7 @@ export function ScheduleBoard({ scenario, shifts, report, onCellClick, onShiftCl
 
       <DragOverlay>
         {dragShift && dragWorker && (
-          <div className="rounded-md px-2 py-1 text-white text-[11px] font-bold shadow-2xl border border-white/20"
+          <div className="rounded-md px-3 py-1.5 text-white text-[11px] font-bold shadow-2xl border border-white/20"
             style={{ backgroundColor: dragShift.on_call ? "#f59e0b" : dragWorker.color }}>
             {dragWorker.name.split(" ").pop()} {Math.round(hoursBetween(dragShift.start, dragShift.end))}h
           </div>

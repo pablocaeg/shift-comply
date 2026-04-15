@@ -322,12 +322,12 @@ function ShiftForm({ shift, workerName, onSave, onDelete, onCancel }: {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="text-[11px] font-medium text-neutral-500 uppercase tracking-wide mb-1.5 block">Start time</label>
-          <input type="time" value={start} onChange={e => setStart(e.target.value)}
+          <input type="time" lang="en-GB" value={start} onChange={e => setStart(e.target.value)} step="3600"
             className="w-full font-mono text-base border border-neutral-200 rounded-lg px-3 py-2.5 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white focus:border-transparent transition-all" />
         </div>
         <div>
           <label className="text-[11px] font-medium text-neutral-500 uppercase tracking-wide mb-1.5 block">End time</label>
-          <input type="time" value={end} onChange={e => setEnd(e.target.value)}
+          <input type="time" lang="en-GB" value={end} onChange={e => setEnd(e.target.value)} step="3600"
             className="w-full font-mono text-base border border-neutral-200 rounded-lg px-3 py-2.5 bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:bg-white focus:border-transparent transition-all" />
         </div>
       </div>
