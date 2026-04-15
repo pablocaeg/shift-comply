@@ -158,7 +158,7 @@ func estatutoRules() []*comply.RuleDef {
 			Source: comply.Source{Title: etSource.Title, Section: "Articulo 37.1", URL: etSource.URL},
 			Notes:  "1.5 days = 36 hours (combining 24h weekly rest + 12h daily rest).",
 		},
-		// --- Night Work ---
+		// Night Work
 		{
 			Key:         comply.RuleNightPeriodStart,
 			Name:        "Night Period Start",
@@ -213,7 +213,7 @@ func estatutoRules() []*comply.RuleDef {
 			},
 			Source: comply.Source{Title: etSource.Title, Section: "Articulo 36.3", URL: etSource.URL},
 		},
-		// --- Annual Leave ---
+		// Annual Leave
 		{
 			Key:         comply.RuleMinAnnualLeaveDays,
 			Name:        "Minimum Annual Leave",

@@ -32,7 +32,7 @@ func rules() []*comply.RuleDef {
 	}
 
 	return []*comply.RuleDef{
-		// --- Article 6: Maximum Weekly Working Time ---
+		// Article 6: Maximum Weekly Working Time
 		{
 			Key:         comply.RuleMaxWeeklyHours,
 			Name:        "Maximum Weekly Working Time",
@@ -61,7 +61,7 @@ func rules() []*comply.RuleDef {
 			},
 			Notes: "The 48-hour limit is absolute unless the individual opt-out (Article 22) is activated by the Member State. Approximately 16 Member States have some form of opt-out, many limited to healthcare.",
 		},
-		// --- Article 3: Daily Rest ---
+		// Article 3: Daily Rest
 		{
 			Key:         comply.RuleMinRestBetweenShifts,
 			Name:        "Minimum Daily Rest Period",
@@ -87,7 +87,7 @@ func rules() []*comply.RuleDef {
 				URL:     wtdSource.URL,
 			},
 		},
-		// --- Article 5: Weekly Rest ---
+		// Article 5: Weekly Rest
 		{
 			Key:         comply.RuleMinWeeklyRest,
 			Name:        "Minimum Weekly Rest Period",
@@ -110,7 +110,7 @@ func rules() []*comply.RuleDef {
 				URL:     wtdSource.URL,
 			},
 		},
-		// --- Article 4: Breaks ---
+		// Article 4: Breaks
 		{
 			Key:         comply.RuleMealBreakThreshold,
 			Name:        "Break Entitlement Trigger",
@@ -128,7 +128,7 @@ func rules() []*comply.RuleDef {
 			},
 			Notes: "The Directive does not specify break duration - this is left to Member States.",
 		},
-		// --- Article 8: Night Work ---
+		// Article 8: Night Work
 		{
 			Key:         comply.RuleMaxNightShiftHours,
 			Name:        "Maximum Night Work Duration",
@@ -146,7 +146,7 @@ func rules() []*comply.RuleDef {
 			},
 			Notes: "Night time = any period of not less than 7 hours, defined by national law, which must include midnight to 5:00 AM. Night worker = regularly works at least 3 hours during night time.",
 		},
-		// --- Article 7: Annual Leave ---
+		// Article 7: Annual Leave
 		{
 			Key:         comply.RuleMinAnnualLeaveDays,
 			Name:        "Minimum Annual Leave",
@@ -163,7 +163,7 @@ func rules() []*comply.RuleDef {
 				URL:     wtdSource.URL,
 			},
 		},
-		// --- Article 17(3)(c)(i): Healthcare Derogation ---
+		// Article 17(3)(c)(i): Healthcare Derogation
 		{
 			Key:         "eu-healthcare-derogation",
 			Name:        "Healthcare Sector Derogation (Article 17)",
@@ -181,7 +181,7 @@ func rules() []*comply.RuleDef {
 			},
 			Notes: "CJEU case law: SIMAP (C-303/98, 2000) - on-call at workplace = working time in entirety. Jaeger (C-151/02, 2003) - compensatory rest must be immediate and consecutive. Matzak (C-518/15, 2018) - home standby with severe response-time constraints may be working time.",
 		},
-		// --- Article 22: Individual Opt-Out ---
+		// Article 22: Individual Opt-Out
 		{
 			Key:         "eu-article-22-optout",
 			Name:        "Individual Opt-Out from 48-Hour Maximum",
