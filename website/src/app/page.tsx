@@ -106,22 +106,40 @@ export default function Home() {
     const sid = v.staff_id;
     const k = v.rule_key;
     let next = [...shifts];
+    const workers = scenario?.workers || [];
 
-    const staff = () => next.filter(s => s.staff_id === sid).sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
-    const drop = (uid: string) => { next = next.filter(s => s._uid !== uid); };
+    const staffShifts = (id: string) => next.filter(s => s.staff_id === id).sort((a, b) => a.start.localeCompare(b.start));
     const patch = (uid: string, u: Partial<Shift>) => { next = next.map(s => s._uid === uid ? { ...s, ...u } : s); };
+    let fixDesc = v.rule_name || v.rule_key;
 
-    if (k.includes("max-weekly") || k.includes("max-combined") || k.includes("max-ordinary") || k.includes("days-off") || k.includes("day-of-rest")) {
-      let excess = v.actual - v.limit;
-      while (excess > 0) {
-        const ss = staff();
-        if (!ss.length) break;
-        const last = ss[ss.length - 1];
-        excess -= shiftHours(last);
-        drop(last._uid!);
+    if (k.includes("max-weekly") || k.includes("max-combined") || k.includes("max-ordinary")) {
+      // Shorten the longest shifts to reduce weekly hours
+      const excess = Math.ceil(v.actual - v.limit);
+      const ss = staffShifts(sid).sort((a, b) => shiftHours(b) - shiftHours(a)); // longest first
+      let reduced = 0;
+      for (const s of ss) {
+        if (reduced >= excess) break;
+        const dur = shiftHours(s);
+        const cut = Math.min(dur - 4, excess - reduced); // don't go below 4h shifts
+        if (cut > 0) {
+          const trimEnd = new Date(new Date(s.start).getTime() + (dur - cut) * 3600000);
+          patch(s._uid!, { end: formatDateTime(trimEnd) });
+          reduced += cut;
+        }
       }
+      fixDesc = `Shortened shifts by ${reduced}h to meet ${v.limit}h/week limit`;
+
+    } else if (k.includes("days-off") || k.includes("day-of-rest")) {
+      // Remove the shortest shift to create a day off
+      const ss = staffShifts(sid).sort((a, b) => shiftHours(a) - shiftHours(b));
+      if (ss.length) {
+        next = next.filter(s => s._uid !== ss[0]._uid);
+        fixDesc = `Removed ${Math.round(shiftHours(ss[0]))}h shift to create a day off`;
+      }
+
     } else if (k.includes("rest-between") || k.includes("min-rest")) {
-      const ss = staff();
+      // Push shifts forward to create enough rest
+      const ss = staffShifts(sid);
       for (let i = 1; i < ss.length; i++) {
         const prev = next.find(s => s._uid === ss[i - 1]._uid)!;
         const cur = next.find(s => s._uid === ss[i]._uid)!;
@@ -133,22 +151,58 @@ export default function Home() {
           patch(cur._uid!, { start: formatDateTime(newStart), end: formatDateTime(newEnd) });
         }
       }
+      fixDesc = `Adjusted shift times to ensure ${v.limit}h rest between shifts`;
+
     } else if (k.includes("max-shift")) {
-      for (const s of staff()) {
+      // Trim to limit
+      for (const s of staffShifts(sid)) {
         if (shiftHours(s) > v.limit) {
           const trimEnd = new Date(new Date(s.start).getTime() + v.limit * 3600000);
           patch(s._uid!, { end: formatDateTime(trimEnd) });
         }
       }
+      fixDesc = `Trimmed shifts to ${v.limit}h maximum`;
+
     } else if (k.includes("guards") || k.includes("on-call")) {
-      const oncalls = staff().filter(s => s.on_call);
-      if (oncalls.length) drop(oncalls[oncalls.length - 1]._uid!);
+      // Reassign excess guards to the worker with fewest guards
+      const myGuards = staffShifts(sid).filter(s => s.on_call);
+      const excess = myGuards.length - Math.floor(v.limit);
+      if (excess > 0) {
+        // Find who has capacity
+        const guardCounts = new Map<string, number>();
+        for (const w of workers) {
+          guardCounts.set(w.id, next.filter(s => s.staff_id === w.id && s.on_call).length);
+        }
+        // Take the last N excess guards and reassign
+        const toReassign = myGuards.slice(-excess);
+        for (const guard of toReassign) {
+          // Find worker with fewest guards (excluding current)
+          let minWorker = workers.find(w => w.id !== sid) || workers[0];
+          let minCount = Infinity;
+          for (const w of workers) {
+            if (w.id === sid) continue;
+            const count = guardCounts.get(w.id) || 0;
+            if (count < minCount) { minCount = count; minWorker = w; }
+          }
+          patch(guard._uid!, { staff_id: minWorker.id, staff_type: minWorker.type });
+          guardCounts.set(minWorker.id, (guardCounts.get(minWorker.id) || 0) + 1);
+          guardCounts.set(sid, (guardCounts.get(sid) || 0) - 1);
+        }
+        fixDesc = `Reassigned ${excess} guard${excess > 1 ? "s" : ""} to ${workers.find(w => w.id !== sid)?.name || "colleague"}`;
+      }
+
     } else {
-      const ss = staff();
-      if (ss.length) drop(ss[ss.length - 1]._uid!);
+      // Fallback: shorten the last shift
+      const ss = staffShifts(sid);
+      if (ss.length) {
+        const last = ss[ss.length - 1];
+        const trimEnd = new Date(new Date(last.start).getTime() + Math.min(shiftHours(last), 8) * 3600000);
+        patch(last._uid!, { end: formatDateTime(trimEnd) });
+        fixDesc = `Shortened last shift`;
+      }
     }
 
-    setFixes(prev => [...prev, { ruleName: v.rule_name || v.rule_key, staffId: sid }]);
+    setFixes(prev => [...prev, { ruleName: fixDesc, staffId: sid }]);
     applyShifts(next);
   }
 
