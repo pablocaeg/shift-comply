@@ -234,6 +234,11 @@ export default function Home() {
                 scenario={scenario} shifts={shifts} report={report}
                 onCellClick={(wid, date) => setAddTarget({ workerId: wid, date })}
                 onShiftClick={uid => setEditUid(uid)}
+                onMoveShift={(uid, toWorkerId) => {
+                  const w = scenario.workers.find(x => x.id === toWorkerId);
+                  if (!w) return;
+                  applyShifts(shifts.map(s => s._uid === uid ? { ...s, staff_id: toWorkerId, staff_type: w.type } : s));
+                }}
               />
 
               <div className="mt-4">
