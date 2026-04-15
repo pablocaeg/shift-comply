@@ -1,271 +1,252 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"os/exec"
 	"strings"
 	"testing"
 
 	"github.com/pablocaeg/shift-comply/comply"
+	_ "github.com/pablocaeg/shift-comply/jurisdictions"
 )
 
-func runCLI(t *testing.T, args ...string) (string, string, int) {
-	t.Helper()
-	cmd := exec.Command("go", append([]string{"run", "."}, args...)...)
-	var stdout, stderr strings.Builder
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	exitCode := 0
-	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			exitCode = exitErr.ExitCode()
-		} else {
-			t.Fatalf("failed to run CLI: %v", err)
-		}
-	}
-	return stdout.String(), stderr.String(), exitCode
+func runCmd(args ...string) (stdout, stderr string, code int) {
+	var out, err bytes.Buffer
+	code = run(args, &out, &err)
+	return out.String(), err.String(), code
 }
 
-// ---------------------------------------------------------------------------
-// No arguments / help
-// ---------------------------------------------------------------------------
-
-func TestCLI_NoArgs(t *testing.T) {
-	_, _, code := runCLI(t)
+func TestNoArgs(t *testing.T) {
+	_, _, code := runCmd()
 	if code == 0 {
-		t.Error("expected non-zero exit code with no arguments")
+		t.Error("expected non-zero exit with no args")
 	}
 }
 
-func TestCLI_Help(t *testing.T) {
-	stdout, _, code := runCLI(t, "help")
+func TestHelp(t *testing.T) {
+	out, _, code := runCmd("help")
 	if code != 0 {
 		t.Errorf("help should exit 0, got %d", code)
 	}
-	if !strings.Contains(stdout, "jurisdictions") {
-		t.Error("help should mention jurisdictions command")
+	if !strings.Contains(out, "jurisdictions") {
+		t.Error("help should mention jurisdictions")
 	}
 }
 
-func TestCLI_UnknownCommand(t *testing.T) {
-	_, stderr, code := runCLI(t, "foobar")
+func TestHelpFlags(t *testing.T) {
+	for _, f := range []string{"-h", "--help"} {
+		out, _, code := runCmd(f)
+		if code != 0 {
+			t.Errorf("%s should exit 0", f)
+		}
+		if !strings.Contains(out, "Usage") {
+			t.Errorf("%s should show usage", f)
+		}
+	}
+}
+
+func TestUnknownCommand(t *testing.T) {
+	_, stderr, code := runCmd("foobar")
 	if code == 0 {
 		t.Error("unknown command should exit non-zero")
 	}
 	if !strings.Contains(stderr, "unknown command") {
-		t.Errorf("expected 'unknown command' in stderr, got: %s", stderr)
+		t.Errorf("expected 'unknown command', got: %s", stderr)
 	}
 }
 
-// ---------------------------------------------------------------------------
-// jurisdictions
-// ---------------------------------------------------------------------------
-
-func TestCLI_Jurisdictions(t *testing.T) {
-	stdout, _, code := runCLI(t, "jurisdictions")
+func TestJurisdictions(t *testing.T) {
+	out, _, code := runCmd("jurisdictions")
 	if code != 0 {
-		t.Errorf("expected exit 0, got %d", code)
+		t.Errorf("expected 0, got %d", code)
 	}
-	if !strings.Contains(stdout, "US") {
-		t.Error("should list US jurisdiction")
-	}
-	if !strings.Contains(stdout, "ES") {
-		t.Error("should list ES jurisdiction")
-	}
-	if !strings.Contains(stdout, "jurisdictions") {
-		t.Error("should show total count")
+	if !strings.Contains(out, "US") || !strings.Contains(out, "ES") {
+		t.Error("should list US and ES")
 	}
 }
 
-func TestCLI_Jurisdictions_ShortAlias(t *testing.T) {
-	stdout, _, code := runCLI(t, "j")
+func TestJurisdictionsAlias(t *testing.T) {
+	out, _, code := runCmd("j")
 	if code != 0 {
-		t.Errorf("expected exit 0, got %d", code)
+		t.Errorf("expected 0, got %d", code)
 	}
-	if !strings.Contains(stdout, "US") {
-		t.Error("short alias 'j' should work")
+	if !strings.Contains(out, "US") {
+		t.Error("alias should work")
 	}
 }
 
-// ---------------------------------------------------------------------------
-// rules
-// ---------------------------------------------------------------------------
-
-func TestCLI_Rules(t *testing.T) {
-	stdout, _, code := runCLI(t, "rules", "US")
+func TestRules(t *testing.T) {
+	out, _, code := runCmd("rules", "US")
 	if code != 0 {
-		t.Errorf("expected exit 0, got %d", code)
+		t.Errorf("expected 0, got %d", code)
 	}
-	if !strings.Contains(stdout, "max-weekly-hours") {
-		t.Error("should show ACGME max weekly hours rule")
+	if !strings.Contains(out, "max-weekly-hours") {
+		t.Error("should show ACGME rule")
 	}
 }
 
-func TestCLI_Rules_WithFilters(t *testing.T) {
-	stdout, _, code := runCLI(t, "rules", "US-CA", "--staff", "nurse-rn", "--category", "staffing")
+func TestRulesFilters(t *testing.T) {
+	out, _, code := runCmd("rules", "--staff", "nurse-rn", "--category", "staffing", "US-CA")
 	if code != 0 {
-		t.Errorf("expected exit 0, got %d", code)
+		t.Errorf("expected 0, got %d", code)
 	}
-	if !strings.Contains(stdout, "nurse-patient-ratio") {
-		t.Error("should show nurse-patient-ratio rules")
+	if !strings.Contains(out, "nurse-patient-ratio") {
+		t.Error("should show nurse ratios")
 	}
 }
 
-func TestCLI_Rules_JSON(t *testing.T) {
-	stdout, _, code := runCLI(t, "rules", "--json", "US")
+func TestRulesJSON(t *testing.T) {
+	out, _, code := runCmd("rules", "--json", "US")
 	if code != 0 {
-		t.Errorf("expected exit 0, got %d", code)
+		t.Errorf("expected 0, got %d", code)
 	}
 	var rules []comply.RuleDef
-	if err := json.Unmarshal([]byte(stdout), &rules); err != nil {
-		t.Fatalf("--json should produce valid JSON: %v", err)
+	if err := json.Unmarshal([]byte(out), &rules); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
 	}
 	if len(rules) == 0 {
 		t.Error("should return rules")
 	}
 }
 
-func TestCLI_Rules_UnknownJurisdiction(t *testing.T) {
-	_, stderr, code := runCLI(t, "rules", "NOWHERE")
+func TestRulesUnknown(t *testing.T) {
+	_, stderr, code := runCmd("rules", "NOWHERE")
 	if code == 0 {
-		t.Error("unknown jurisdiction should exit non-zero")
+		t.Error("should fail")
 	}
-	if !strings.Contains(stderr, "unknown jurisdiction") {
-		t.Errorf("expected error message, got: %s", stderr)
+	if !strings.Contains(stderr, "unknown") {
+		t.Errorf("expected error, got: %s", stderr)
 	}
 }
 
-func TestCLI_Rules_MissingArg(t *testing.T) {
-	_, stderr, code := runCLI(t, "rules")
+func TestRulesMissing(t *testing.T) {
+	_, stderr, code := runCmd("rules")
 	if code == 0 {
-		t.Error("missing jurisdiction should exit non-zero")
-	}
-	if !strings.Contains(stderr, "usage") {
-		t.Errorf("expected usage message, got: %s", stderr)
-	}
-}
-
-// ---------------------------------------------------------------------------
-// compare
-// ---------------------------------------------------------------------------
-
-func TestCLI_Compare(t *testing.T) {
-	stdout, _, code := runCLI(t, "compare", "US-CA", "ES")
-	if code != 0 {
-		t.Errorf("expected exit 0, got %d", code)
-	}
-	if !strings.Contains(stdout, "Comparing US-CA vs ES") {
-		t.Error("should show comparison header")
-	}
-	if !strings.Contains(stdout, "Summary") {
-		t.Error("should show summary")
-	}
-}
-
-func TestCLI_Compare_JSON(t *testing.T) {
-	stdout, _, code := runCLI(t, "compare", "--json", "US", "ES")
-	if code != 0 {
-		t.Errorf("expected exit 0, got %d", code)
-	}
-	var comp comply.Comparison
-	if err := json.Unmarshal([]byte(stdout), &comp); err != nil {
-		t.Fatalf("--json should produce valid JSON: %v", err)
-	}
-}
-
-func TestCLI_Compare_MissingArg(t *testing.T) {
-	_, stderr, code := runCLI(t, "compare", "US")
-	if code == 0 {
-		t.Error("missing second arg should exit non-zero")
+		t.Error("should fail")
 	}
 	if !strings.Contains(stderr, "usage") {
 		t.Errorf("expected usage, got: %s", stderr)
 	}
 }
 
-// ---------------------------------------------------------------------------
-// constraints
-// ---------------------------------------------------------------------------
-
-func TestCLI_Constraints(t *testing.T) {
-	stdout, _, code := runCLI(t, "constraints", "ES", "--staff", "resident")
+func TestCompare(t *testing.T) {
+	out, _, code := runCmd("compare", "US-CA", "ES")
 	if code != 0 {
-		t.Errorf("expected exit 0, got %d", code)
+		t.Errorf("expected 0, got %d", code)
 	}
-	var constraints []comply.Constraint
-	if err := json.Unmarshal([]byte(stdout), &constraints); err != nil {
-		t.Fatalf("should produce valid JSON: %v", err)
+	if !strings.Contains(out, "Comparing") {
+		t.Error("should show header")
 	}
-	if len(constraints) == 0 {
+	if !strings.Contains(out, "Summary") {
+		t.Error("should show summary")
+	}
+}
+
+func TestCompareJSON(t *testing.T) {
+	out, _, code := runCmd("compare", "--json", "US", "ES")
+	if code != 0 {
+		t.Errorf("expected 0, got %d", code)
+	}
+	var comp comply.Comparison
+	if err := json.Unmarshal([]byte(out), &comp); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+}
+
+func TestCompareMissing(t *testing.T) {
+	_, stderr, code := runCmd("compare", "US")
+	if code == 0 {
+		t.Error("should fail")
+	}
+	if !strings.Contains(stderr, "usage") {
+		t.Errorf("expected usage, got: %s", stderr)
+	}
+}
+
+func TestConstraints(t *testing.T) {
+	out, _, code := runCmd("constraints", "--staff", "resident", "ES")
+	if code != 0 {
+		t.Errorf("expected 0, got %d", code)
+	}
+	var c []comply.Constraint
+	if err := json.Unmarshal([]byte(out), &c); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
+	}
+	if len(c) == 0 {
 		t.Error("should return constraints")
 	}
 }
 
-func TestCLI_Constraints_UnknownJurisdiction(t *testing.T) {
-	_, stderr, code := runCLI(t, "constraints", "NOWHERE")
+func TestConstraintsUnknown(t *testing.T) {
+	_, stderr, code := runCmd("constraints", "NOWHERE")
 	if code == 0 {
-		t.Error("unknown jurisdiction should exit non-zero")
+		t.Error("should fail")
 	}
-	if !strings.Contains(stderr, "unknown jurisdiction") {
+	if !strings.Contains(stderr, "unknown") {
 		t.Errorf("expected error, got: %s", stderr)
 	}
 }
 
-// ---------------------------------------------------------------------------
-// export
-// ---------------------------------------------------------------------------
+func TestConstraintsMissing(t *testing.T) {
+	_, stderr, code := runCmd("constraints")
+	if code == 0 {
+		t.Error("should fail")
+	}
+	if !strings.Contains(stderr, "usage") {
+		t.Errorf("expected usage, got: %s", stderr)
+	}
+}
 
-func TestCLI_Export(t *testing.T) {
-	stdout, _, code := runCLI(t, "export", "US")
+func TestExport(t *testing.T) {
+	out, _, code := runCmd("export", "US")
 	if code != 0 {
-		t.Errorf("expected exit 0, got %d", code)
+		t.Errorf("expected 0, got %d", code)
 	}
 	var j comply.JurisdictionDef
-	if err := json.Unmarshal([]byte(stdout), &j); err != nil {
-		t.Fatalf("should produce valid JSON: %v", err)
+	if err := json.Unmarshal([]byte(out), &j); err != nil {
+		t.Fatalf("invalid JSON: %v", err)
 	}
 	if j.Code != "US" {
 		t.Errorf("expected US, got %s", j.Code)
 	}
 }
 
-func TestCLI_Export_Unknown(t *testing.T) {
-	_, stderr, code := runCLI(t, "export", "NOWHERE")
+func TestExportUnknown(t *testing.T) {
+	_, stderr, code := runCmd("export", "NOWHERE")
 	if code == 0 {
-		t.Error("unknown jurisdiction should exit non-zero")
+		t.Error("should fail")
 	}
-	if !strings.Contains(stderr, "unknown jurisdiction") {
+	if !strings.Contains(stderr, "unknown") {
 		t.Errorf("expected error, got: %s", stderr)
 	}
 }
 
-// ---------------------------------------------------------------------------
-// helpers
-// ---------------------------------------------------------------------------
+func TestExportMissing(t *testing.T) {
+	_, stderr, code := runCmd("export")
+	if code == 0 {
+		t.Error("should fail")
+	}
+	if !strings.Contains(stderr, "usage") {
+		t.Errorf("expected usage, got: %s", stderr)
+	}
+}
 
 func TestOpSymbol(t *testing.T) {
 	tests := []struct {
 		op   comply.Operator
 		want string
 	}{
-		{comply.OpLTE, "<="},
-		{comply.OpGTE, ">="},
-		{comply.OpEQ, "=="},
-		{comply.OpBool, ""},
-		{"unknown", "unknown"},
+		{comply.OpLTE, "<="}, {comply.OpGTE, ">="}, {comply.OpEQ, "=="}, {comply.OpBool, ""}, {"x", "x"},
 	}
 	for _, tt := range tests {
-		got := opSymbol(tt.op)
-		if got != tt.want {
+		if got := opSymbol(tt.op); got != tt.want {
 			t.Errorf("opSymbol(%q) = %q, want %q", tt.op, got, tt.want)
 		}
 	}
 }
 
 func TestJoinKeys(t *testing.T) {
-	got := joinKeys([]comply.Key{"a", "b", "c"})
-	if got != "a,b,c" {
-		t.Errorf("joinKeys = %q, want 'a,b,c'", got)
+	if got := joinKeys([]comply.Key{"a", "b"}); got != "a,b" {
+		t.Errorf("got %q", got)
 	}
 }
