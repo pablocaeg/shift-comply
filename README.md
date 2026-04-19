@@ -55,16 +55,25 @@ The integration: when a hospital onboards and selects "Catalonia, public hospita
 
 ## Coverage
 
+![Coverage Map](assets/us-coverage.svg)
+
+*Regenerate after adding jurisdictions: `go run ./cmd/genmap > assets/us-coverage.svg`*
+
+### All Jurisdictions
+
 | Jurisdiction | Rules | Key Sources |
 |---|---|---|
 | **US Federal** | 17 | ACGME CPR Section VI (accreditation, not statute), FLSA 29 U.S.C. S207, VA Personnel Enhancement Act |
 | **California** | 32 | Title 22 CCR S70217 (nurse ratios), Labor Code S510, IWC Wage Order 5-2001 S3(H), Gov. Code S19851.2 |
+| **New York** | 12 | 10 NYCRR S405.4 (Bell Regulations), Labor Law S167 (nurse OT ban, $1K-$3K penalties), PHL S2805-t (ICU 1:2 ratio) |
+| **Texas** | 6 | H&S Code Ch. 258 (nurse OT ban, hospitals only), Occ. Code Ch. 303 (safe harbor), H&S Code Ch. 257 (staffing committees) |
+| **Florida** | 6 | FAC 59A-4.108 (nursing home 16h shift limit). Documented absences: no nurse OT ban, no breaks, no ratios |
 | **EU** | 8 | Directive 2003/88/EC, CJEU case law (SIMAP, Jaeger, Matzak) |
 | **Spain** | 21 | RDL 2/2015 (Estatuto de los Trabajadores), Ley 55/2003 (Estatuto Marco, public health only), RD 1146/2006 (MIR) |
 | **Catalonia** | 6 | III Acord ICS (DOGC Jan 23, 2024, Resolucio EMT/74/2024). 4 guards/month, age exemptions, post-guard rest |
 | **Madrid** | 3 | SERMAS Resolution Feb 26, 2021 + STS 280/2022 (March 30, 2022). 36-hour weekly rest, 1,642.5 annual hours |
 
-**87 rules across 6 jurisdictions.** Every rule has a verified legal citation and correct facility scope. Spanish region rules are verified against DOGC/BOE publications, Supreme Court rulings, and official union/health service sources.
+**111 rules across 9 jurisdictions.** Every rule has a verified legal citation and correct facility scope.
 
 ## Install
 
