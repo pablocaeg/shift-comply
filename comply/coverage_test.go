@@ -50,7 +50,7 @@ func TestRulesEquivalent_BothNilValues(t *testing.T) {
 
 func TestGenerateConstraints_AllTypes(t *testing.T) {
 	// Generate constraints for all jurisdictions to cover more branches
-	for _, code := range []comply.Code{comply.US, comply.USCA, comply.EU, comply.ES, comply.ESCT, comply.ESMD} {
+	for _, code := range []comply.Code{comply.US, comply.USCA, comply.USNY, comply.USTX, comply.USFL, comply.EU, comply.ES, comply.ESCT, comply.ESMD} {
 		c := comply.GenerateConstraints(code)
 		if len(c) == 0 && code != comply.ESMD {
 			t.Errorf("expected constraints for %s", code)

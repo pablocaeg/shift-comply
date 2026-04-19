@@ -10,6 +10,9 @@ type Code string
 const (
 	US   Code = "US"
 	USCA Code = "US-CA"
+	USNY Code = "US-NY"
+	USTX Code = "US-TX"
+	USFL Code = "US-FL"
 	EU   Code = "EU"
 	ES   Code = "ES"
 	ESMD Code = "ES-MD"
