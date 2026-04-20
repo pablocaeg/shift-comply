@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { geoAlbersUsa, geoPath } from "d3-geo";
 import * as topojson from "topojson-client";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,11 +13,17 @@ interface Props {
   selected: string | null;
 }
 
+interface StatePath {
+  fips: string;
+  code: string | undefined;
+  d: string;
+}
+
 export function USMap({ jurisdictions, onSelect, selected }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
   const [topology, setTopology] = useState<Topology | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
   const covered = useMemo(() => {
     const map = new Map<string, JurisdictionInfo>();
@@ -35,14 +41,40 @@ export function USMap({ jurisdictions, onSelect, selected }: Props) {
       .then(setTopology);
   }, []);
 
-  if (!topology) return <div className="h-[500px] flex items-center justify-center text-neutral-400 text-sm">Loading map...</div>;
+  // Pre-compute all path strings once when topology loads
+  const { statePaths, borderPath } = useMemo((): { statePaths: StatePath[]; borderPath: string } => {
+    if (!topology) return { statePaths: [], borderPath: "" };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const states = topojson.feature(topology, topology.objects.states as any) as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const borders = topojson.mesh(topology, topology.objects.states as any, (a: any, b: any) => a !== b);
+    const projection = geoAlbersUsa().fitSize([900, 500], states);
+    const pathGen = geoPath(projection);
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const states = topojson.feature(topology, topology.objects.states as any) as any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const borders = topojson.mesh(topology, topology.objects.states as any, (a: any, b: any) => a !== b);
-  const projection = geoAlbersUsa().fitSize([900, 500], states);
-  const path = geoPath(projection);
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      statePaths: states.features.map((feature: any) => {
+        const fips = String(feature.id).padStart(2, "0");
+        return {
+          fips,
+          code: FIPS_TO_CODE[fips],
+          d: pathGen(feature) || "",
+        };
+      }),
+      borderPath: pathGen(borders) || "",
+    };
+  }, [topology]);
+
+  // Update tooltip position via DOM ref (no re-render)
+  const updateTooltip = useCallback((e: React.MouseEvent) => {
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (rect && tooltipRef.current) {
+      tooltipRef.current.style.left = `${e.clientX - rect.left}px`;
+      tooltipRef.current.style.top = `${e.clientY - rect.top - 10}px`;
+    }
+  }, []);
+
+  if (!topology) return <div className="h-[500px] flex items-center justify-center text-neutral-400 text-sm">Loading map...</div>;
 
   const hoveredCode = hovered ? FIPS_TO_CODE[hovered] : null;
   const hoveredInfo = hoveredCode ? covered.get(hoveredCode) : null;
@@ -57,10 +89,7 @@ export function USMap({ jurisdictions, onSelect, selected }: Props) {
         style={{ background: "#fafafa", borderRadius: 12 }}
       >
         {/* States */}
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {states.features.map((feature: any) => {
-          const fips = String(feature.id).padStart(2, "0");
-          const code = FIPS_TO_CODE[fips];
+        {statePaths.map(({ fips, code, d }) => {
           const info = code ? covered.get(code) : undefined;
           const isCovered = !!info;
           const isHovered = hovered === fips;
@@ -69,30 +98,16 @@ export function USMap({ jurisdictions, onSelect, selected }: Props) {
           return (
             <path
               key={fips}
-              d={path(feature) || ""}
+              d={d}
               fill={isSelected ? "#059669" : isCovered ? "#bbf7d0" : "#f0f0f0"}
               stroke={isSelected ? "#047857" : isHovered ? "#16a34a" : isCovered ? "#86efac" : "#d4d4d4"}
               strokeWidth={isSelected ? 2 : isHovered ? 1.5 : 0.5}
               cursor="pointer"
               onMouseEnter={(e) => {
                 setHovered(fips);
-                const rect = svgRef.current?.getBoundingClientRect();
-                if (rect) {
-                  setTooltipPos({
-                    x: e.clientX - rect.left,
-                    y: e.clientY - rect.top - 10,
-                  });
-                }
+                updateTooltip(e);
               }}
-              onMouseMove={(e) => {
-                const rect = svgRef.current?.getBoundingClientRect();
-                if (rect) {
-                  setTooltipPos({
-                    x: e.clientX - rect.left,
-                    y: e.clientY - rect.top - 10,
-                  });
-                }
-              }}
+              onMouseMove={updateTooltip}
               onMouseLeave={() => setHovered(null)}
               onClick={() => onSelect(isSelected ? null : code || null)}
               style={{ transition: "fill 0.15s, stroke 0.15s" }}
@@ -102,7 +117,7 @@ export function USMap({ jurisdictions, onSelect, selected }: Props) {
 
         {/* State borders */}
         <path
-          d={path(borders) || ""}
+          d={borderPath}
           fill="none"
           stroke="white"
           strokeWidth={0.5}
@@ -112,23 +127,22 @@ export function USMap({ jurisdictions, onSelect, selected }: Props) {
       </svg>
 
       {/* Tooltip */}
-      {hovered && hoveredName && (
-        <div
-          className="absolute pointer-events-none z-20 bg-neutral-900 text-white px-3 py-2 rounded-lg text-xs shadow-xl"
-          style={{
-            left: tooltipPos.x,
-            top: tooltipPos.y,
-            transform: "translate(-50%, -100%)",
-          }}
-        >
-          <div className="font-semibold text-[13px]">{hoveredName}</div>
-          {hoveredInfo ? (
-            <div className="text-emerald-400 mt-0.5">{hoveredInfo.ruleCount} state-specific rules</div>
-          ) : (
-            <div className="text-neutral-400 mt-0.5">Federal rules only ({federal?.ruleCount || 0} rules)</div>
-          )}
-        </div>
-      )}
+      <div
+        ref={tooltipRef}
+        className={`absolute pointer-events-none z-20 bg-neutral-900 text-white px-3 py-2 rounded-lg text-xs shadow-xl transition-opacity duration-100 ${hovered && hoveredName ? "opacity-100" : "opacity-0"}`}
+        style={{ transform: "translate(-50%, -100%)" }}
+      >
+        {hoveredName && (
+          <>
+            <div className="font-semibold text-[13px]">{hoveredName}</div>
+            {hoveredInfo ? (
+              <div className="text-emerald-400 mt-0.5">{hoveredInfo.ruleCount} state-specific rules</div>
+            ) : (
+              <div className="text-neutral-400 mt-0.5">Federal rules only ({federal?.ruleCount || 0} rules)</div>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Legend */}
       <div className="flex items-center gap-5 mt-3 px-1">

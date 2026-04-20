@@ -37,11 +37,6 @@ export const STATE_NAMES: Record<string, string> = {
 export const COUNTRY_NUMERIC_TO_CODE: Record<string, string> = {
   "840": "US",   // United States
   "724": "ES",   // Spain
-  "250": "FR",   // France (planned)
-  "276": "DE",   // Germany (planned)
-  "380": "IT",   // Italy (planned)
-  "826": "GB",   // United Kingdom (planned)
-  "620": "PT",   // Portugal (planned)
 };
 
 // EU member state numeric codes (inherit EU rules)
@@ -58,3 +53,33 @@ export interface JurisdictionInfo {
   parent?: string;
   type: string;
 }
+
+// Healthcare sector stats for covered jurisdictions.
+// Sources: AHA Annual Survey 2024, BLS OEWS May 2024, INE 2024,
+// Ministerio de Sanidad CNH 2025, Eurostat 2023.
+// Sub-national stats are NOT included to avoid double-counting with their parent.
+export interface JurisdictionStats {
+  hospitals: number;
+  healthcareWorkers: number;
+}
+
+export const JURISDICTION_STATS: Record<string, JurisdictionStats> = {
+  // US Federal: AHA 2024 (6,100 total registered), BLS OEWS May 2024 (18.2M)
+  "US":    { hospitals: 6_100,  healthcareWorkers: 18_200_000 },
+  // US States: AHA via KFF 2024 (community hospitals), KFF/BLS QCEW 2023 (hospital employees)
+  "US-CA": { hospitals: 350,    healthcareWorkers: 610_000 },
+  "US-NY": { hospitals: 158,    healthcareWorkers: 465_000 },
+  "US-TX": { hospitals: 503,    healthcareWorkers: 500_000 },
+  "US-FL": { hospitals: 229,    healthcareWorkers: 425_000 },
+  "US-MA": { hospitals: 70,     healthcareWorkers: 214_000 },
+  "US-IL": { hospitals: 183,    healthcareWorkers: 274_000 },
+  "US-OR": { hospitals: 60,     healthcareWorkers: 68_000 },
+  // EU: Eurostat 2023 (physicians + nurses ~ 5.7M), hospital count not published by Eurostat
+  "EU":    { hospitals: 15_000, healthcareWorkers: 5_700_000 },
+  // Spain: Ministerio de Sanidad CNH 2025 (848 hospitals), INE 2024 (1M professionals)
+  "ES":    { hospitals: 848,    healthcareWorkers: 1_009_000 },
+  // Catalonia: CNH 2025 (204 hospitals), INE/Idescat 2024 (~115K physicians+nurses)
+  "ES-CT": { hospitals: 204,    healthcareWorkers: 115_000 },
+  // Madrid: CNH 2025 (91 hospitals), INE 2024 (~110K physicians+nurses)
+  "ES-MD": { hospitals: 91,     healthcareWorkers: 110_000 },
+};

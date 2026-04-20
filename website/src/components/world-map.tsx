@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { geoNaturalEarth1, geoPath, geoGraticule } from "d3-geo";
 import * as topojson from "topojson-client";
 import { COUNTRY_NUMERIC_TO_CODE, EU_MEMBERS, type JurisdictionInfo } from "@/lib/jurisdiction-data";
@@ -11,12 +11,18 @@ interface Props {
   selected: string | null;
 }
 
+interface CountryPath {
+  numericId: string;
+  code: string | undefined;
+  d: string;
+}
+
 export function WorldMap({ jurisdictions, onSelect, selected }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [topology, setTopology] = useState<any>(null);
   const [hovered, setHovered] = useState<string | null>(null);
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
   const covered = useMemo(() => {
     const map = new Map<string, JurisdictionInfo>();
@@ -32,38 +38,62 @@ export function WorldMap({ jurisdictions, onSelect, selected }: Props) {
       .then(setTopology);
   }, []);
 
+  // Pre-compute all path strings once when topology loads
+  const { countryPaths, borderPath, graticulePath } = useMemo((): { countryPaths: CountryPath[]; borderPath: string; graticulePath: string } => {
+    if (!topology) return { countryPaths: [], borderPath: "", graticulePath: "" };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const countries = topojson.feature(topology, topology.objects.countries as any) as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const borders = topojson.mesh(topology, topology.objects.countries as any, (a: any, b: any) => a !== b);
+    const projection = geoNaturalEarth1().fitSize([900, 440], countries);
+    const pathGen = geoPath(projection);
+    const graticule = geoGraticule();
+
+    return {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      countryPaths: countries.features.map((feature: any, idx: number) => {
+        const numericId = feature.id != null ? String(feature.id) : `unknown-${idx}`;
+        return {
+          numericId,
+          code: COUNTRY_NUMERIC_TO_CODE[numericId],
+          d: pathGen(feature) || "",
+        };
+      }),
+      borderPath: pathGen(borders) || "",
+      graticulePath: pathGen(graticule()) || "",
+    };
+  }, [topology]);
+
+  // Update tooltip position via DOM ref (no re-render)
+  const updateTooltip = useCallback((e: React.MouseEvent) => {
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (rect && tooltipRef.current) {
+      tooltipRef.current.style.left = `${e.clientX - rect.left}px`;
+      tooltipRef.current.style.top = `${e.clientY - rect.top - 10}px`;
+    }
+  }, []);
+
   if (!topology) return <div className="h-[400px] flex items-center justify-center text-neutral-400 text-sm">Loading map...</div>;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const countries = topojson.feature(topology, topology.objects.countries as any) as any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const borders = topojson.mesh(topology, topology.objects.countries as any, (a: any, b: any) => a !== b);
-
-  const projection = geoNaturalEarth1().fitSize([900, 440], countries);
-  const path = geoPath(projection);
-  const graticule = geoGraticule();
-
-  const hoveredNumeric = hovered;
-  const hoveredCode = hoveredNumeric ? COUNTRY_NUMERIC_TO_CODE[hoveredNumeric] : null;
+  const hoveredCode = hovered ? COUNTRY_NUMERIC_TO_CODE[hovered] : null;
   const hoveredInfo = hoveredCode ? covered.get(hoveredCode) : null;
+  const isHoveredEU = hovered ? EU_MEMBERS.has(String(hovered).padStart(3, "0")) && hasEU : false;
 
   return (
     <div className="relative">
       <svg ref={svgRef} viewBox="0 0 900 440" className="w-full h-auto" style={{ background: "#fafafa", borderRadius: 12 }}>
         {/* Graticule */}
-        <path d={path(graticule()) || ""} fill="none" stroke="#f0f0f0" strokeWidth={0.3} />
+        <path d={graticulePath} fill="none" stroke="#f0f0f0" strokeWidth={0.3} />
 
         {/* Countries */}
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {countries.features.map((feature: any, idx: number) => {
-          const numericId = feature.id != null ? String(feature.id) : `unknown-${idx}`;
-          const code = COUNTRY_NUMERIC_TO_CODE[numericId];
+        {countryPaths.map(({ numericId, code, d }) => {
           const info = code ? covered.get(code) : undefined;
           const isEUMember = EU_MEMBERS.has(numericId.padStart(3, "0"));
           const isCovered = !!info;
           const isEUOnly = !isCovered && isEUMember && hasEU;
+          const isClickable = isCovered || isEUOnly;
           const isHovered = hovered === numericId;
-          const isSelected = selected === code;
+          const isSelected = isClickable && selected === code;
 
           let fill = "#f0f0f0";
           let stroke = "#d4d4d4";
@@ -75,24 +105,20 @@ export function WorldMap({ jurisdictions, onSelect, selected }: Props) {
           return (
             <path
               key={numericId}
-              d={path(feature) || ""}
+              d={d}
               fill={fill}
               stroke={stroke}
               strokeWidth={isSelected ? 1.5 : isHovered ? 1 : 0.3}
-              cursor={code || isEUOnly ? "pointer" : "default"}
+              cursor={isClickable ? "pointer" : "default"}
               onMouseEnter={(e) => {
                 setHovered(numericId);
-                const rect = svgRef.current?.getBoundingClientRect();
-                if (rect) setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top - 10 });
+                updateTooltip(e);
               }}
-              onMouseMove={(e) => {
-                const rect = svgRef.current?.getBoundingClientRect();
-                if (rect) setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top - 10 });
-              }}
+              onMouseMove={updateTooltip}
               onMouseLeave={() => setHovered(null)}
               onClick={() => {
                 if (isSelected) onSelect(null);
-                else if (code) onSelect(code);
+                else if (isCovered && code) onSelect(code);
                 else if (isEUOnly) onSelect("EU");
               }}
               style={{ transition: "fill 0.15s" }}
@@ -101,26 +127,27 @@ export function WorldMap({ jurisdictions, onSelect, selected }: Props) {
         })}
 
         {/* Borders */}
-        <path d={path(borders) || ""} fill="none" stroke="white" strokeWidth={0.3} pointerEvents="none" />
+        <path d={borderPath} fill="none" stroke="white" strokeWidth={0.3} pointerEvents="none" />
       </svg>
 
       {/* Tooltip */}
-      {hovered && (
-        <div className="absolute pointer-events-none z-20 bg-neutral-900 text-white px-3 py-2 rounded-lg text-xs shadow-xl"
-          style={{ left: tooltipPos.x, top: tooltipPos.y, transform: "translate(-50%, -100%)" }}>
-          {hoveredInfo ? (
-            <>
-              <div className="font-semibold text-[13px]">{hoveredInfo.name}</div>
-              <div className="text-emerald-400 mt-0.5">{hoveredInfo.ruleCount} rules</div>
-            </>
-          ) : EU_MEMBERS.has(String(hovered).padStart(3, "0")) && hasEU ? (
-            <>
-              <div className="font-semibold text-[13px]">EU Member State</div>
-              <div className="text-blue-400 mt-0.5">Inherits EU Working Time Directive ({covered.get("EU")?.ruleCount || 0} rules)</div>
-            </>
-          ) : null}
-        </div>
-      )}
+      <div
+        ref={tooltipRef}
+        className={`absolute pointer-events-none z-20 bg-neutral-900 text-white px-3 py-2 rounded-lg text-xs shadow-xl transition-opacity duration-100 ${hovered && (hoveredInfo || isHoveredEU) ? "opacity-100" : "opacity-0"}`}
+        style={{ transform: "translate(-50%, -100%)" }}
+      >
+        {hoveredInfo ? (
+          <>
+            <div className="font-semibold text-[13px]">{hoveredInfo.name}</div>
+            <div className="text-emerald-400 mt-0.5">{hoveredInfo.ruleCount} rules</div>
+          </>
+        ) : isHoveredEU ? (
+          <>
+            <div className="font-semibold text-[13px]">EU Member State</div>
+            <div className="text-blue-400 mt-0.5">Inherits EU Working Time Directive ({covered.get("EU")?.ruleCount || 0} rules)</div>
+          </>
+        ) : null}
+      </div>
 
       {/* Legend */}
       <div className="flex items-center gap-5 mt-3 px-1 flex-wrap">

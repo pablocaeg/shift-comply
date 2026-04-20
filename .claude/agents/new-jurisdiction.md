@@ -263,6 +263,16 @@ When the user names a jurisdiction, research ALL of the following that apply:
 - The scope: does this apply to all employers, only public, only hospitals, etc.?
 - Exceptions: when does this rule NOT apply?
 
+**Healthcare sector stats (for the coverage map):**
+Also research the following for the jurisdiction. These do NOT need to be perfectly accurate, representative numbers are fine:
+- Total number of hospitals (government health ministry data, AHA for US states)
+- Total healthcare workers (hospital employees or registered professionals)
+- Source and year of the data
+
+For US states: use AHA via KFF for community hospital counts, BLS/KFF for hospital employment.
+For EU countries: use national health ministry data or Eurostat.
+For sub-national regions: use regional health ministry data.
+
 **Verification protocol:**
 - Search for the primary legal text (official gazette, legislature website)
 - Cross-reference with at least one secondary source (legal database, government FAQ, union documentation)
@@ -299,6 +309,12 @@ Present ALL findings in this exact format:
 |---|---|---|
 | 72-hour weekly cap | Employment law blog | Could not find in primary statute |
 
+### Healthcare Sector Stats
+| Metric | Value | Source | Year |
+|---|---|---|---|
+| Hospitals | [N] | [source name] | [year] |
+| Healthcare workers | [N] | [source name] | [year] |
+
 ### Inheritance Analysis
 - Parent: [code] (inherits [N] rules)
 - Rules that OVERRIDE parent (same key, different value): [list]
@@ -333,6 +349,11 @@ After human approval:
 3. If the Code constant doesn't exist in `comply/jurisdiction.go`, add it.
 
 4. Add blank import to `jurisdictions/jurisdictions.go`.
+
+5. Add healthcare stats to `website/src/lib/jurisdiction-data.ts`:
+   - Add an entry to `JURISDICTION_STATS` with the hospitals and healthcareWorkers counts from research
+   - If the jurisdiction is a country, also add its ISO 3166-1 numeric code to `COUNTRY_NUMERIC_TO_CODE`
+   - If the jurisdiction is an EU member state, verify its numeric code is in `EU_MEMBERS`
 
 ### Phase 4: Add Tests
 
