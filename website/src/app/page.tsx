@@ -154,33 +154,41 @@ export default function Home() {
             )}
           </section>
 
-          {/* Coverage stats + agent */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mb-8 mt-2">
-            {viewStats.hospitals > 0 && (
-              <div className="flex items-center gap-4 text-xs text-neutral-400">
-                <div>
-                  Covering regulations affecting
-                  <span className="font-mono font-semibold text-neutral-600 mx-1">{viewStats.hospitals.toLocaleString()}+</span>
-                  hospitals
-                </div>
-                <span className="text-neutral-200">|</span>
-                <div>
-                  <span className="font-mono font-semibold text-neutral-600 mr-1">{(viewStats.workers / 1_000_000).toFixed(1)}M+</span>
-                  healthcare workers
-                </div>
+          {/* Coverage stats */}
+          {viewStats.hospitals > 0 && (
+            <div className="flex items-center justify-center gap-6 mb-4 text-xs text-neutral-400">
+              <div>
+                Covering regulations affecting
+                <span className="font-mono font-semibold text-neutral-600 mx-1">{viewStats.hospitals.toLocaleString()}+</span>
+                hospitals
               </div>
-            )}
-            <button
-              onClick={() => setAgentOpen(true)}
-              className="flex items-center gap-2 text-xs text-neutral-500 hover:text-neutral-900 transition-colors group"
-            >
-              <span>Added with the help of an AI agent</span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-neutral-100 group-hover:bg-neutral-200 text-[11px] font-medium text-neutral-600 transition-colors">
+              <span className="text-neutral-200">|</span>
+              <div>
+                <span className="font-mono font-semibold text-neutral-600 mr-1">{(viewStats.workers / 1_000_000).toFixed(1)}M+</span>
+                healthcare workers
+              </div>
+            </div>
+          )}
+
+          {/* Agent callout */}
+          <button
+            onClick={() => setAgentOpen(true)}
+            className="w-full mb-8 group"
+          >
+            <div className="flex items-center gap-4 px-5 py-4 rounded-xl border border-neutral-200 bg-neutral-50 hover:bg-white hover:border-neutral-300 hover:shadow-sm transition-all">
+              <div className="w-9 h-9 rounded-xl bg-neutral-900 flex items-center justify-center shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              </div>
+              <div className="flex-1 text-left">
+                <div className="text-sm font-semibold text-neutral-900">Added with the help of an AI agent</div>
+                <div className="text-xs text-neutral-500 mt-0.5">Researches real legislation, verifies every citation against primary sources, and opens a pull request for review.</div>
+              </div>
+              <div className="hidden sm:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-neutral-900 text-white text-xs font-medium shrink-0 group-hover:bg-neutral-800 transition-colors">
                 How it works
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </span>
-            </button>
-          </div>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </div>
+            </div>
+          </button>
 
           {/* Selected jurisdiction detail */}
           {selected && selectedInfo && (
