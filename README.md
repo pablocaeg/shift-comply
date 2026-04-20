@@ -55,10 +55,6 @@ The integration: when a hospital onboards and selects "Catalonia, public hospita
 
 ## Coverage
 
-![Coverage Map](assets/us-coverage.svg)
-
-*Regenerate after adding jurisdictions: `go run ./cmd/genmap > assets/us-coverage.svg`*
-
 ### All Jurisdictions
 
 | Jurisdiction | Rules | Key Sources |
