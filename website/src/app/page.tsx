@@ -122,6 +122,8 @@ export default function Home() {
         </p>
       </section>
 
+      {loaded && <AgentPanel />}
+
       {loaded ? (
         <main className="flex-1 max-w-6xl mx-auto px-6 pb-16 w-full">
           {/* View toggle */}
@@ -266,9 +268,6 @@ export default function Home() {
             </section>
           )}
 
-          {/* Agent info */}
-          <AgentInfo />
-
           {/* Jurisdiction cards */}
           {view === "us" && (
             <section className="mt-10 mb-8">
@@ -321,65 +320,84 @@ export default function Home() {
   );
 }
 
-function AgentInfo() {
+function AgentPanel() {
   const [open, setOpen] = useState(false);
 
   const steps = [
     { label: "Run the agent", code: "/agents/new-jurisdiction Add France" },
     { label: "Agent researches legislation", detail: "Searches primary legal sources, verifies citations, finds effective dates and scopes" },
-    { label: "Review findings", detail: "Presents a table of verified rules with sources for your approval before writing code" },
-    { label: "Code generation", detail: "Creates Go package, tests, updates registry, adds healthcare stats to coverage map" },
-    { label: "Verify and PR", detail: "Runs tests, linter, and CLI checks. Ready to commit" },
+    { label: "Review findings", detail: "Presents verified rules with sources for your approval before writing any code" },
+    { label: "Code generation", detail: "Creates Go package, tests, updates registry, adds stats to coverage map" },
+    { label: "Opens a pull request", detail: "Runs tests and linter, commits, and opens a PR for maintainer review" },
+    { label: "Maintainer reviews sources", detail: "Every citation is checked against the primary legal text before merging" },
   ];
 
   return (
-    <section className="mt-8 mb-2">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 text-xs text-neutral-500 hover:text-neutral-900 transition-colors group"
-      >
-        <span className={`transition-transform duration-200 ${open ? "rotate-90" : ""}`}>&#9654;</span>
-        <span className="font-medium">Adding a jurisdiction?</span>
-        <span className="text-neutral-400 group-hover:text-neutral-500">Use the new-jurisdiction agent</span>
-      </button>
+    <>
+      {/* Trigger button - fixed bottom-right */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-6 right-6 z-40 bg-neutral-900 text-white pl-3 pr-4 py-2.5 rounded-full shadow-lg hover:bg-neutral-800 transition-all hover:shadow-xl flex items-center gap-2"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+          <span className="text-xs font-medium">Add jurisdiction</span>
+        </button>
+      )}
 
+      {/* Backdrop */}
       {open && (
-        <div className="mt-3 pl-5 animate-in fade-in slide-in-from-top-1 duration-150">
-          <div className="border border-neutral-200 rounded-xl p-4 bg-neutral-50/50 max-w-2xl">
-            <div className="space-y-3">
-              {steps.map((step, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    <div className="w-5 h-5 rounded-full bg-neutral-900 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                      {i + 1}
-                    </div>
-                    {i < steps.length - 1 && <div className="w-px flex-1 bg-neutral-200 mt-1" />}
+        <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
+      )}
+
+      {/* Side panel */}
+      <div className={`fixed top-0 right-0 z-50 h-full w-80 bg-white border-l border-neutral-200 shadow-2xl transition-transform duration-200 ease-out ${open ? "translate-x-0" : "translate-x-full"}`}>
+        <div className="p-5 h-full overflow-y-auto">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-sm font-bold text-neutral-900">New jurisdiction agent</h3>
+            <button onClick={() => setOpen(false)} className="text-neutral-400 hover:text-neutral-700 text-xs">Close</button>
+          </div>
+
+          <p className="text-[11px] text-neutral-500 mb-5 leading-relaxed">
+            An AI agent that researches a country or region's healthcare scheduling laws, verifies every citation against primary legal sources, and generates the complete Go package with tests.
+          </p>
+
+          <div className="space-y-4">
+            {steps.map((step, i) => (
+              <div key={i} className="flex gap-3">
+                <div className="flex flex-col items-center">
+                  <div className="w-5 h-5 rounded-full bg-neutral-900 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
+                    {i + 1}
                   </div>
-                  <div className="pb-3">
-                    <div className="text-xs font-medium text-neutral-900">{step.label}</div>
-                    {step.code && (
-                      <code className="text-[11px] bg-neutral-900 text-emerald-400 px-2 py-1 rounded mt-1 block font-mono">
-                        {step.code}
-                      </code>
-                    )}
-                    {step.detail && (
-                      <div className="text-[11px] text-neutral-500 mt-0.5">{step.detail}</div>
-                    )}
-                  </div>
+                  {i < steps.length - 1 && <div className="w-px flex-1 bg-neutral-200 mt-1" />}
                 </div>
-              ))}
-            </div>
+                <div className="pb-1">
+                  <div className="text-xs font-medium text-neutral-900">{step.label}</div>
+                  {step.code && (
+                    <code className="text-[11px] bg-neutral-900 text-emerald-400 px-2 py-1 rounded mt-1 block font-mono">
+                      {step.code}
+                    </code>
+                  )}
+                  {step.detail && (
+                    <div className="text-[11px] text-neutral-500 mt-0.5 leading-relaxed">{step.detail}</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-neutral-100">
             <a
               href="https://github.com/pablocaeg/shift-comply/tree/main/.claude/agents"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-block mt-2 text-[11px] text-blue-600 hover:text-blue-800 hover:underline"
+              className="text-[11px] text-blue-600 hover:text-blue-800 hover:underline"
             >
               View agent source on GitHub
             </a>
           </div>
         </div>
-      )}
-    </section>
+      </div>
+    </>
   );
 }

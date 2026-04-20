@@ -366,11 +366,14 @@ Create tests that verify:
 6. Overriding rules actually override parent (if applicable)
 7. All rules have non-empty Source.Title
 
-### Phase 5: Verify
+### Phase 5: Verify and Create PR
 
 1. `go build ./...`
 2. `go test ./... -count=1`
 3. `go vet ./...`
 4. `go run ./cmd/shiftcomply rules {CODE}` (verify output looks right)
 5. `go run ./cmd/shiftcomply rules {CODE} --json | python3 -c "import sys,json; d=json.load(sys.stdin); print(f'{len(d)} rules')"` (verify JSON serialization)
-6. Report to user: jurisdiction name, rule count, test results, any issues
+6. Create a git branch named `add-{code}` (e.g., `add-fr`, `add-us-wa`), commit all changes, push, and open a pull request using `gh pr create`:
+   - Title: `Add {Jurisdiction Name} ({N} rules)`
+   - Body: summary of rules added, key legal sources, healthcare stats, and a note that citations need maintainer review
+7. Report to user: jurisdiction name, rule count, test results, PR URL
