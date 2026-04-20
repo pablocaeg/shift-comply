@@ -106,6 +106,8 @@ export default function Home() {
                 <span className="font-mono font-semibold text-neutral-600">{jurisdictions.length}</span> jurisdictions
               </div>
             )}
+            <button onClick={() => setAgentOpen(true)}
+              className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors">Agent</button>
             <a href="https://github.com/pablocaeg/shift-comply" target="_blank" rel="noopener noreferrer"
               className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors">GitHub</a>
           </div>
@@ -156,21 +158,12 @@ export default function Home() {
 
           {/* Coverage stats */}
           {viewStats.hospitals > 0 && (
-            <div className="flex items-center justify-center gap-6 mb-8 text-xs text-neutral-400">
-              <div>
-                Covering regulations affecting
-                <span className="font-mono font-semibold text-neutral-600 mx-1">{viewStats.hospitals.toLocaleString()}+</span>
-                hospitals
-              </div>
-              <span className="text-neutral-200">|</span>
-              <div>
-                <span className="font-mono font-semibold text-neutral-600 mr-1">{(viewStats.workers / 1_000_000).toFixed(1)}M+</span>
-                healthcare workers
-              </div>
-              <span className="text-neutral-200">|</span>
-              <button onClick={() => setAgentOpen(true)} className="hover:text-neutral-600 transition-colors underline underline-offset-2">
-                How jurisdictions are added
-              </button>
+            <div className="text-center mb-8 text-xs text-neutral-400">
+              Covering regulations affecting
+              <span className="font-mono font-semibold text-neutral-600 mx-1">{viewStats.hospitals.toLocaleString()}+</span>
+              hospitals and
+              <span className="font-mono font-semibold text-neutral-600 mx-1">{(viewStats.workers / 1_000_000).toFixed(1)}M+</span>
+              healthcare workers
             </div>
           )}
 
