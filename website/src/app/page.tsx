@@ -154,28 +154,30 @@ export default function Home() {
             )}
           </section>
 
-          {/* Coverage stats + agent callout */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-100">
-            {viewStats.hospitals > 0 && (
-              <div className="flex items-center gap-4 text-xs text-neutral-400">
-                <div>
-                  Covering regulations affecting
-                  <span className="font-mono font-semibold text-neutral-600 mx-1">{viewStats.hospitals.toLocaleString()}+</span>
-                  hospitals
-                </div>
-                <span className="text-neutral-200 hidden sm:inline">|</span>
-                <div>
-                  <span className="font-mono font-semibold text-neutral-600 mr-1">{(viewStats.workers / 1_000_000).toFixed(1)}M+</span>
-                  healthcare workers
-                </div>
+          {/* Coverage stats */}
+          {viewStats.hospitals > 0 && (
+            <div className="flex items-center justify-center gap-6 mb-2 text-xs text-neutral-400">
+              <div>
+                Covering regulations affecting
+                <span className="font-mono font-semibold text-neutral-600 mx-1">{viewStats.hospitals.toLocaleString()}+</span>
+                hospitals
               </div>
-            )}
+              <span className="text-neutral-200">|</span>
+              <div>
+                <span className="font-mono font-semibold text-neutral-600 mr-1">{(viewStats.workers / 1_000_000).toFixed(1)}M+</span>
+                healthcare workers
+              </div>
+            </div>
+          )}
+
+          {/* Agent callout */}
+          <div className="flex items-center justify-center mb-6">
             <button
               onClick={() => setAgentOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shrink-0"
+              className="text-[11px] text-neutral-400 hover:text-neutral-600 transition-colors"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-              Add a jurisdiction
+              New jurisdictions added via AI agent.
+              <span className="underline underline-offset-2 ml-1">See how it works</span>
             </button>
           </div>
 
