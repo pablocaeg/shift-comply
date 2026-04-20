@@ -33,6 +33,24 @@ export const STATE_NAMES: Record<string, string> = {
   "US-WV": "West Virginia", "US-WI": "Wisconsin", "US-WY": "Wyoming",
 };
 
+// Maps ISO 3166-1 numeric codes to shift-comply jurisdiction codes (for world map)
+export const COUNTRY_NUMERIC_TO_CODE: Record<string, string> = {
+  "840": "US",   // United States
+  "724": "ES",   // Spain
+  "250": "FR",   // France (planned)
+  "276": "DE",   // Germany (planned)
+  "380": "IT",   // Italy (planned)
+  "826": "GB",   // United Kingdom (planned)
+  "620": "PT",   // Portugal (planned)
+};
+
+// EU member state numeric codes (inherit EU rules)
+export const EU_MEMBERS = new Set([
+  "040", "056", "100", "191", "196", "203", "208", "233", "246", "250",
+  "276", "300", "348", "372", "380", "428", "440", "442", "470", "528",
+  "616", "620", "642", "703", "705", "724", "752",
+]);
+
 export interface JurisdictionInfo {
   code: string;
   name: string;
