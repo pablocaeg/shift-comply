@@ -55,8 +55,8 @@ export function WorldMap({ jurisdictions, onSelect, selected }: Props) {
 
         {/* Countries */}
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {countries.features.map((feature: any) => {
-          const numericId = String(feature.id);
+        {countries.features.map((feature: any, idx: number) => {
+          const numericId = feature.id != null ? String(feature.id) : `unknown-${idx}`;
           const code = COUNTRY_NUMERIC_TO_CODE[numericId];
           const info = code ? covered.get(code) : undefined;
           const isEUMember = EU_MEMBERS.has(numericId.padStart(3, "0"));
