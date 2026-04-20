@@ -81,7 +81,7 @@ export function WorldMap({ jurisdictions, onSelect, selected }: Props) {
 
   return (
     <div className="relative">
-      <svg ref={svgRef} viewBox="0 0 900 440" className="w-full h-auto" style={{ background: "#fafafa", borderRadius: 12 }}>
+      <svg ref={svgRef} viewBox="0 0 900 440" className="w-full h-auto" style={{ background: "#f5f5f4", borderRadius: 12 }}>
         {/* Graticule */}
         <path d={graticulePath} fill="none" stroke="#f0f0f0" strokeWidth={0.3} />
 
@@ -127,7 +127,7 @@ export function WorldMap({ jurisdictions, onSelect, selected }: Props) {
         })}
 
         {/* Borders */}
-        <path d={borderPath} fill="none" stroke="#d4d4d4" strokeWidth={0.3} pointerEvents="none" />
+        <path d={borderPath} fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth={0.6} pointerEvents="none" />
       </svg>
 
       {/* Tooltip */}

@@ -86,7 +86,7 @@ export function USMap({ jurisdictions, onSelect, selected }: Props) {
         ref={svgRef}
         viewBox="0 0 900 500"
         className="w-full h-auto"
-        style={{ background: "#fafafa", borderRadius: 12 }}
+        style={{ background: "#f5f5f4", borderRadius: 12 }}
       >
         {/* States */}
         {statePaths.map(({ fips, code, d }) => {
@@ -119,8 +119,8 @@ export function USMap({ jurisdictions, onSelect, selected }: Props) {
         <path
           d={borderPath}
           fill="none"
-          stroke="#d4d4d4"
-          strokeWidth={0.5}
+          stroke="rgba(255,255,255,0.9)"
+          strokeWidth={1}
           strokeLinejoin="round"
           pointerEvents="none"
         />
