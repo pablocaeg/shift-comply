@@ -171,15 +171,23 @@ export default function Home() {
           )}
 
           {/* Agent callout */}
-          <div className="flex items-center justify-center mb-6">
-            <button
-              onClick={() => setAgentOpen(true)}
-              className="text-[11px] text-neutral-400 hover:text-neutral-600 transition-colors"
-            >
-              New jurisdictions added via AI agent.
-              <span className="underline underline-offset-2 ml-1">See how it works</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setAgentOpen(true)}
+            className="w-full mb-6 group"
+          >
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl border border-neutral-200 hover:border-neutral-300 bg-white hover:bg-neutral-50 transition-all">
+              <div className="flex items-center gap-3">
+                <div className="w-7 h-7 rounded-lg bg-neutral-900 flex items-center justify-center shrink-0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <div className="text-left">
+                  <div className="text-xs font-medium text-neutral-900">Jurisdictions are added by an AI agent</div>
+                  <div className="text-[11px] text-neutral-500">Researches legislation, verifies sources, opens a PR for review</div>
+                </div>
+              </div>
+              <span className="text-xs text-neutral-400 group-hover:text-neutral-600 transition-colors hidden sm:block">See how &rarr;</span>
+            </div>
+          </button>
 
           {/* Selected jurisdiction detail */}
           {selected && selectedInfo && (
