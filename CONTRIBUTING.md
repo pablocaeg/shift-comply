@@ -2,12 +2,16 @@
 
 ## Adding a new jurisdiction
 
-1. Create a new package under `jurisdictions/` (e.g., `jurisdictions/us_ny/`).
+The fastest way: use the [new-jurisdiction agent](.claude/agents/README.md). It researches the legislation, presents findings for your review, then generates the Go package with tests. Run: `/agents/new-jurisdiction Add France`
+
+Manual process:
+1. Create a new package under `jurisdictions/` (e.g., `jurisdictions/fr/`).
 2. Implement a `New()` function that returns `*comply.JurisdictionDef`.
 3. Register it in `init()` with `comply.RegisterJurisdiction(New())`.
 4. Add a blank import in `jurisdictions/jurisdictions.go`.
 5. Add tests in `comply/comply_test.go` for the new jurisdiction.
-6. Update the coverage table in `README.md`.
+6. Add healthcare stats to `website/src/lib/jurisdiction-data.ts` (`JURISDICTION_STATS`).
+7. Update the coverage table in `README.md`.
 
 ### Requirements for jurisdiction data
 

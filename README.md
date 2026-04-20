@@ -64,12 +64,15 @@ The integration: when a hospital onboards and selects "Catalonia, public hospita
 | **New York** | 12 | 10 NYCRR S405.4 (Bell Regulations), Labor Law S167 (nurse OT ban, $1K-$3K penalties), PHL S2805-t (ICU 1:2 ratio) |
 | **Texas** | 6 | H&S Code Ch. 258 (nurse OT ban, hospitals only), Occ. Code Ch. 303 (safe harbor), H&S Code Ch. 257 (staffing committees) |
 | **Florida** | 6 | FAC 59A-4.108 (nursing home 16h shift limit). Documented absences: no nurse OT ban, no breaks, no ratios |
+| **Massachusetts** | 10 | G.L. c.111 S226 (nurse OT ban, 16h cap), c.111 S231 (ICU 1:2 ratio), G.L. c.149 S100 (meal break) |
+| **Illinois** | 9 | 210 ILCS 85/6.14 (ACGME codified), 85/10.9 (nurse OT ban), ODRISA 820 ILCS 140 (day of rest, meal breaks) |
+| **Oregon** | 8 | ORS 441.166 (nurse OT ban, 12h cap, 48h weekly, 10h rest), HB 2697 (2023 amendments), ORS 653.261 (meal/rest breaks) |
 | **EU** | 8 | Directive 2003/88/EC, CJEU case law (SIMAP, Jaeger, Matzak) |
 | **Spain** | 21 | RDL 2/2015 (Estatuto de los Trabajadores), Ley 55/2003 (Estatuto Marco, public health only), RD 1146/2006 (MIR) |
 | **Catalonia** | 6 | III Acord ICS (DOGC Jan 23, 2024, Resolucio EMT/74/2024). 4 guards/month, age exemptions, post-guard rest |
 | **Madrid** | 3 | SERMAS Resolution Feb 26, 2021 + STS 280/2022 (March 30, 2022). 36-hour weekly rest, 1,642.5 annual hours |
 
-**111 rules across 9 jurisdictions.** Every rule has a verified legal citation and correct facility scope.
+**138 rules across 12 jurisdictions.** Every rule has a verified legal citation and correct facility scope.
 
 ## Install
 
@@ -183,7 +186,7 @@ WebAssembly.instantiateStreaming(fetch("shiftcomply.wasm"), go.importObject)
   .then(result => {
     go.run(result.instance);
 
-    // All 87 rules available client-side, zero API calls
+    // All 138 rules available client-side, zero API calls
     const rules = JSON.parse(shiftcomply.rules("US-CA", "nurse-rn"));
     const constraints = JSON.parse(shiftcomply.constraints("ES", "resident"));
     const diff = JSON.parse(shiftcomply.compare("US-CA", "ES"));
@@ -201,7 +204,7 @@ WebAssembly.instantiateStreaming(fetch("shiftcomply.wasm"), go.importObject)
 </script>
 ```
 
-The .wasm file is ~3.7MB and contains the full regulation database, validation engine, and constraint generator. No server round-trips needed.
+The .wasm file is ~3.8MB and contains the full regulation database, validation engine, and constraint generator. No server round-trips needed.
 
 ### Example: constraints output
 
@@ -276,6 +279,12 @@ comply/                  Core types, registry, query API, constraint generation
 jurisdictions/           One package per jurisdiction (registered at init time)
   us/                    US Federal (ACGME, FLSA, VA)
   us_ca/                 California (nurse ratios, overtime, breaks, mandatory OT restrictions)
+  us_ny/                 New York (Bell Regulations, nurse OT ban, ICU ratio)
+  us_tx/                 Texas (nurse OT ban hospitals only, safe harbor, staffing committees)
+  us_fl/                 Florida (nursing home shift limits, documented absences)
+  us_ma/                 Massachusetts (nurse OT ban, ICU ratio, meal breaks)
+  us_il/                 Illinois (ACGME codified, nurse OT ban, ODRISA day of rest)
+  us_or/                 Oregon (nurse OT ban, 12h cap, 48h weekly, 10h rest)
   eu/                    EU Working Time Directive 2003/88/EC
   es/                    Spain (Estatuto de los Trabajadores, Estatuto Marco, MIR residency)
   es_ct/                 Catalonia / ICS (III Acord, guard limits, age exemptions)
@@ -424,7 +433,7 @@ When a regulation changes (a new collective agreement is signed, a court ruling 
 ## Roadmap
 
 - [x] Core types, registry, and query API
-- [x] 9 jurisdictions with 111 verified rules (US Federal, California, New York, Texas, Florida, EU, Spain, Catalonia, Madrid)
+- [x] 12 jurisdictions with 138 verified rules (US Federal + 7 states, EU, Spain + 2 regions)
 - [x] Facility scope on every rule (public health, hospitals, accredited programs, VA, etc.)
 - [x] Jurisdiction comparison and hierarchical inheritance
 - [x] Constraint generation (optimizer-ready JSON output)
@@ -432,10 +441,10 @@ When a regulation changes (a new collective agreement is signed, a court ruling 
 - [x] Schedule validation engine
 - [x] REST API with /jurisdictions, /rules, /constraints, /compare, /validate, /export endpoints
 - [x] WASM build exposing full API to JavaScript
-- [x] Interactive coverage map (D3 + topojson, click to browse regulations)
+- [x] Interactive coverage map (D3 + topojson, clickable citations, healthcare sector stats)
 - [x] CI: GitHub Actions (lint, test with race detector, WASM build, GitHub Pages deploy)
 - [x] New-jurisdiction agent for adding jurisdictions end-to-end
-- [ ] More US states (MA, IL, PA, WA)
+- [ ] More US states (PA, WA, MN, OH)
 - [ ] Spanish autonomous communities (Andalusia/SAS)
 - [ ] More EU countries (France, Germany, Italy)
 - [ ] GoReleaser for versioned releases
@@ -444,7 +453,7 @@ When a regulation changes (a new collective agreement is signed, a court ruling 
 
 Shift Comply is a data library, not a web service. The language choice is driven by how the data gets consumed:
 
-**Single binary, zero dependencies.** All 78 rules compile into the binary. No database, no config files, no runtime. Deploy as a sidecar, a CLI tool, or a Lambda function with nothing to install.
+**Single binary, zero dependencies.** All 138 rules compile into the binary. No database, no config files, no runtime. Deploy as a sidecar, a CLI tool, or a Lambda function with nothing to install.
 
 **Cross-compilation.** `GOOS=linux GOARCH=amd64 go build` produces a Linux binary from a Mac. Same for ARM, Windows, or any target. One `go build` command, no Docker required.
 
