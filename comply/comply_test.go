@@ -11,6 +11,7 @@ import (
 func TestAllJurisdictionsRegistered(t *testing.T) {
 	expected := []comply.Code{
 		comply.US, comply.USCA, comply.USNY, comply.USTX, comply.USFL,
+		comply.USMA, comply.USIL, comply.USOR,
 		comply.EU, comply.ES, comply.ESCT, comply.ESMD,
 	}
 	for _, code := range expected {
@@ -33,8 +34,8 @@ func TestAllJurisdictionsRegistered(t *testing.T) {
 
 func TestJurisdictionCount(t *testing.T) {
 	all := comply.All()
-	if len(all) != 9 {
-		t.Errorf("expected 9 jurisdictions, got %d", len(all))
+	if len(all) != 12 {
+		t.Errorf("expected 12 jurisdictions, got %d", len(all))
 	}
 }
 

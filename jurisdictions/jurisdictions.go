@@ -14,6 +14,9 @@ import (
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/us"    // US jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/us_ca" // US-CA jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/us_fl" // US-FL jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/us_il" // US-IL jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/us_ma" // US-MA jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/us_ny" // US-NY jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/us_or" // US-OR jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/us_tx" // US-TX jurisdiction
 )
