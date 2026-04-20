@@ -119,7 +119,7 @@ export function USMap({ jurisdictions, onSelect, selected }: Props) {
         <path
           d={borderPath}
           fill="none"
-          stroke="white"
+          stroke="#d4d4d4"
           strokeWidth={0.5}
           strokeLinejoin="round"
           pointerEvents="none"

@@ -127,7 +127,7 @@ export function WorldMap({ jurisdictions, onSelect, selected }: Props) {
         })}
 
         {/* Borders */}
-        <path d={borderPath} fill="none" stroke="white" strokeWidth={0.3} pointerEvents="none" />
+        <path d={borderPath} fill="none" stroke="#d4d4d4" strokeWidth={0.3} pointerEvents="none" />
       </svg>
 
       {/* Tooltip */}

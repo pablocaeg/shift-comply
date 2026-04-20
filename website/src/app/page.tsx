@@ -17,6 +17,7 @@ export default function Home() {
   const [selected, setSelected] = useState<string | null>(null);
   const [view, setView] = useState<MapView>("us");
   const [showInherited, setShowInherited] = useState(false);
+  const [agentOpen, setAgentOpen] = useState(false);
   const detailRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -122,7 +123,7 @@ export default function Home() {
         </p>
       </section>
 
-      {loaded && <AgentPanel />}
+      {loaded && <AgentPanel open={agentOpen} onOpenChange={setAgentOpen} />}
 
       {loaded ? (
         <main className="flex-1 max-w-6xl mx-auto px-6 pb-16 w-full">
@@ -153,21 +154,30 @@ export default function Home() {
             )}
           </section>
 
-          {/* Coverage stats */}
-          {viewStats.hospitals > 0 && (
-            <div className="flex items-center justify-center gap-6 mb-6 text-xs text-neutral-400">
-              <div>
-                Covering regulations affecting
-                <span className="font-mono font-semibold text-neutral-600 mx-1">{viewStats.hospitals.toLocaleString()}+</span>
-                hospitals
+          {/* Coverage stats + agent callout */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 px-4 py-3 bg-neutral-50 rounded-xl border border-neutral-100">
+            {viewStats.hospitals > 0 && (
+              <div className="flex items-center gap-4 text-xs text-neutral-400">
+                <div>
+                  Covering regulations affecting
+                  <span className="font-mono font-semibold text-neutral-600 mx-1">{viewStats.hospitals.toLocaleString()}+</span>
+                  hospitals
+                </div>
+                <span className="text-neutral-200 hidden sm:inline">|</span>
+                <div>
+                  <span className="font-mono font-semibold text-neutral-600 mr-1">{(viewStats.workers / 1_000_000).toFixed(1)}M+</span>
+                  healthcare workers
+                </div>
               </div>
-              <span className="text-neutral-200">|</span>
-              <div>
-                <span className="font-mono font-semibold text-neutral-600 mr-1">{(viewStats.workers / 1_000_000).toFixed(1)}M+</span>
-                healthcare workers
-              </div>
-            </div>
-          )}
+            )}
+            <button
+              onClick={() => setAgentOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-neutral-900 text-white hover:bg-neutral-800 transition-colors shrink-0"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add a jurisdiction
+            </button>
+          </div>
 
           {/* Selected jurisdiction detail */}
           {selected && selectedInfo && (
@@ -320,9 +330,7 @@ export default function Home() {
   );
 }
 
-function AgentPanel() {
-  const [open, setOpen] = useState(false);
-
+function AgentPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
   const steps = [
     { label: "Run the agent", code: "/agents/new-jurisdiction Add France" },
     { label: "Agent researches legislation", detail: "Searches primary legal sources, verifies citations, finds effective dates and scopes" },
@@ -334,20 +342,9 @@ function AgentPanel() {
 
   return (
     <>
-      {/* Trigger button - fixed bottom-right */}
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-40 bg-neutral-900 text-white pl-3 pr-4 py-2.5 rounded-full shadow-lg hover:bg-neutral-800 transition-all hover:shadow-xl flex items-center gap-2"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          <span className="text-xs font-medium">Add jurisdiction</span>
-        </button>
-      )}
-
       {/* Backdrop */}
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-[2px]" onClick={() => setOpen(false)} />
+        <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-[2px]" onClick={() => onOpenChange(false)} />
       )}
 
       {/* Side panel */}
@@ -355,7 +352,7 @@ function AgentPanel() {
         <div className="p-5 h-full overflow-y-auto">
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-sm font-bold text-neutral-900">New jurisdiction agent</h3>
-            <button onClick={() => setOpen(false)} className="text-neutral-400 hover:text-neutral-700 text-xs">Close</button>
+            <button onClick={() => onOpenChange(false)} className="text-neutral-400 hover:text-neutral-700 text-xs">Close</button>
           </div>
 
           <p className="text-[11px] text-neutral-500 mb-5 leading-relaxed">
