@@ -107,7 +107,7 @@ export default function Home() {
               </div>
             )}
             <button onClick={() => setAgentOpen(true)}
-              className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors">Agent</button>
+              className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors">How it scales</button>
             <a href="https://github.com/pablocaeg/shift-comply" target="_blank" rel="noopener noreferrer"
               className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors">GitHub</a>
           </div>
