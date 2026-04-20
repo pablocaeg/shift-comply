@@ -7,7 +7,7 @@
 
 Open-source, machine-readable database of healthcare scheduling regulations across jurisdictions.
 
-**[Live Demo] WIP (https://pablocaeg.github.io/shift-comply/)** | Every regulation carries a real legal citation, an effective date, and is queryable by jurisdiction, staff type, and hospital unit. All data compiles into the binary. No database required.
+**[Coverage Map](https://pablocaeg.github.io/shift-comply/)** | Interactive map showing which jurisdictions are covered. Click any state or country to browse its regulations with legal citations. Runs entirely in the browser via WebAssembly.
 
 > **Adding a new jurisdiction?** Use the [new-jurisdiction agent](.claude/agents/README.md). It researches the real laws, presents findings for your review, then generates the complete Go package with tests. Run: `/agents/new-jurisdiction Add France`
 
@@ -424,20 +424,20 @@ When a regulation changes (a new collective agreement is signed, a court ruling 
 ## Roadmap
 
 - [x] Core types, registry, and query API
-- [x] 6 verified jurisdictions (US Federal, California, EU, Spain, Catalonia, Madrid) with 87 rules
+- [x] 9 jurisdictions with 111 verified rules (US Federal, California, New York, Texas, Florida, EU, Spain, Catalonia, Madrid)
 - [x] Facility scope on every rule (public health, hospitals, accredited programs, VA, etc.)
 - [x] Jurisdiction comparison and hierarchical inheritance
 - [x] Constraint generation (optimizer-ready JSON output)
 - [x] CLI tool with filtering and JSON export
-- [x] JSON serialization on all types
-- [x] Schedule validation engine (max shift hours, weekly hours with averaging, rest between shifts, days off, guard limits)
-- [x] REST API (`shiftcomply-api`) with /jurisdictions, /rules, /constraints, /compare, /validate, /export endpoints
-- [x] WASM build (3.7MB) exposing full API to JavaScript
-- [x] CI: GitHub Actions (lint with golangci-lint, test with race detector, WASM build verification)
-- [ ] More US states (NY, TX, FL, MA, IL)
+- [x] Schedule validation engine
+- [x] REST API with /jurisdictions, /rules, /constraints, /compare, /validate, /export endpoints
+- [x] WASM build exposing full API to JavaScript
+- [x] Interactive coverage map (D3 + topojson, click to browse regulations)
+- [x] CI: GitHub Actions (lint, test with race detector, WASM build, GitHub Pages deploy)
+- [x] New-jurisdiction agent for adding jurisdictions end-to-end
+- [ ] More US states (MA, IL, PA, WA)
 - [ ] Spanish autonomous communities (Andalusia/SAS)
 - [ ] More EU countries (France, Germany, Italy)
-- [ ] Codecov integration
 - [ ] GoReleaser for versioned releases
 
 ## Why Go
