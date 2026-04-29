@@ -8,6 +8,7 @@
 //	GET  /constraints?jurisdiction=X Generate optimizer-ready constraints
 //	GET  /compare?left=X&right=Y    Compare two jurisdictions
 //	POST /validate                   Validate a schedule against jurisdiction rules
+//	POST /validate-swap              Check if a proposed shift swap is compliant
 //	GET  /export/:code               Full JSON export of a jurisdiction
 //
 // Start:
@@ -43,6 +44,7 @@ func main() {
 	mux.HandleFunc("/constraints", handleConstraints)
 	mux.HandleFunc("/compare", handleCompare)
 	mux.HandleFunc("/validate", handleValidate)
+	mux.HandleFunc("/validate-swap", handleValidateSwap)
 	mux.HandleFunc("/export/", handleExport)
 	mux.HandleFunc("/health", handleHealth)
 
@@ -134,6 +136,27 @@ func handleValidate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	report, err := comply.Validate(schedule)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, err), http.StatusBadRequest)
+		return
+	}
+
+	writeJSON(w, report)
+}
+
+func handleValidateSwap(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	var req comply.SwapRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, fmt.Sprintf(`{"error":"invalid JSON: %s"}`, err), http.StatusBadRequest)
+		return
+	}
+
+	report, err := comply.ValidateSwap(req)
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error":"%s"}`, err), http.StatusBadRequest)
 		return
