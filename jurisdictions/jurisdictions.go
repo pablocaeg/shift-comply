@@ -7,10 +7,14 @@
 package jurisdictions
 
 import (
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/de"    // DE jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/es"    // ES jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_ct" // ES-CT jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_md" // ES-MD jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/eu"    // EU jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/hu"    // HU jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/it"    // IT jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/pl"    // PL jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/us"    // US jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/us_ca" // US-CA jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/us_fl" // US-FL jurisdiction
