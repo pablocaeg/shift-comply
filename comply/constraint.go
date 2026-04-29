@@ -60,38 +60,58 @@ const (
 	ConstraintPolicy         ConstraintType = "policy" // boolean policies
 )
 
-// ruleToConstraintType maps rule keys to constraint types.
-var ruleToConstraintType = map[Key]ConstraintType{
-	RuleMaxWeeklyHours:         ConstraintMaxHours,
-	RuleMaxOrdinaryWeeklyHours: ConstraintMaxHours,
-	RuleMaxCombinedWeeklyHours: ConstraintMaxHours,
-	RuleMaxDailyHours:          ConstraintMaxHours,
-	RuleMaxAnnualHours:         ConstraintMaxHours,
-	RuleMaxShiftHours:          ConstraintMaxShift,
-	RuleMaxShiftTransition:     ConstraintMaxShift,
-	RuleMaxConsecutiveNights:   ConstraintMaxConsecutive,
-	RuleMaxConsecutiveDays:     ConstraintMaxConsecutive,
-	RuleMinRestBetweenShifts:   ConstraintMinRest,
-	RuleMinRestAfterExtended:   ConstraintMinRest,
-	RuleMinWeeklyRest:          ConstraintMinRest,
-	RuleDaysOffPerWeek:         ConstraintMinDaysOff,
-	RuleMinDayOfRest:           ConstraintMinDaysOff,
-	RuleMaxOvertimeAnnual:      ConstraintMaxOvertime,
-	RuleMealBreakThreshold:     ConstraintBreakRequired,
-	RuleMealBreakDuration:      ConstraintBreakRequired,
-	RuleRestBreakDuration:      ConstraintBreakRequired,
-	RuleRestBreakInterval:      ConstraintBreakRequired,
-	RuleMaxGuardsMonthly:       ConstraintMaxGuards,
-	RuleMinRestAfterGuard:      ConstraintMinRest,
-	RuleMaxOnCallFrequency:     ConstraintMaxGuards,
+// categoryToConstraintType maps rule categories to constraint types.
+// This replaces the old key-based map so new jurisdiction keys are handled
+// automatically without code changes.
+var categoryToConstraintType = map[Category]ConstraintType{
+	CatWorkHours: ConstraintMaxHours,
+	CatRest:      ConstraintMinRest,
+	CatOnCall:    ConstraintMaxGuards,
+	CatOvertime:  ConstraintMaxOvertime,
+	CatBreaks:    ConstraintBreakRequired,
+	CatStaffing:  ConstraintStaffingRatio,
+	CatNightWork: ConstraintMaxConsecutive,
+	CatLeave:     ConstraintMinDaysOff,
+}
+
+// refineConstraintType narrows the constraint type based on rule semantics.
+// The category gives a rough mapping; this function refines it using the
+// key, operator, and value unit.
+func refineConstraintType(r *RuleDef, v *RuleValue, base ConstraintType) ConstraintType {
+	switch r.Category {
+	case CatWorkHours:
+		if v.Per == PerShift {
+			return ConstraintMaxShift
+		}
+		if v.Unit == Count {
+			return ConstraintMaxConsecutive
+		}
+		return ConstraintMaxHours
+	case CatRest:
+		if v.Per == PerWeek && v.Unit == Days {
+			return ConstraintMinDaysOff
+		}
+		if v.Per == PerWeek && v.Unit == Hours {
+			return ConstraintMinRest
+		}
+		return ConstraintMinRest
+	}
+	return base
 }
 
 // GenerateConstraints produces optimizer-ready constraints from the effective
 // rules for a jurisdiction. Each rule is translated into a Constraint struct
 // with normalized fields that scheduling engines can consume directly.
+//
+// All rules are included. Boolean/policy rules use ConstraintPolicy. Rules
+// whose category isn't mapped get ConstraintPolicy as a fallback — nothing
+// is silently dropped.
 func GenerateConstraints(code Code, opts ...QueryOption) []Constraint {
 	rules := EffectiveRules(code, opts...)
 	constraints := make([]Constraint, 0, len(rules))
+
+	// Track days-off rules so we can derive max-consecutive-days.
+	var daysOffRules []*RuleDef
 
 	for _, r := range rules {
 		v := r.Current()
@@ -99,16 +119,13 @@ func GenerateConstraints(code Code, opts ...QueryOption) []Constraint {
 			continue
 		}
 
-		ct, ok := ruleToConstraintType[r.Key]
-		if !ok {
-			// Staffing ratios use composite keys
-			if r.Category == CatStaffing {
-				ct = ConstraintStaffingRatio
-			} else if r.Operator == OpBool {
-				ct = ConstraintPolicy
-			} else {
-				continue // rule type not yet mapped
-			}
+		var ct ConstraintType
+		if r.Operator == OpBool {
+			ct = ConstraintPolicy
+		} else if base, ok := categoryToConstraintType[r.Category]; ok {
+			ct = refineConstraintType(r, v, base)
+		} else {
+			ct = ConstraintPolicy
 		}
 
 		c := Constraint{
@@ -123,23 +140,46 @@ func GenerateConstraints(code Code, opts ...QueryOption) []Constraint {
 			Enforcement:   r.Enforcement,
 			Jurisdiction:  code,
 			RuleKey:       r.Key,
+			Citation:      r.Source.Citation(),
 		}
 
-		c.Citation = r.Source.Citation()
-
-		// Convert averaging period to days
 		if v.Averaged != nil {
-			switch v.Averaged.Unit {
-			case PeriodDays:
-				c.AveragedOverDays = v.Averaged.Count
-			case PeriodWeeks:
-				c.AveragedOverDays = v.Averaged.Count * 7
-			case PeriodMonths:
-				c.AveragedOverDays = v.Averaged.Count * 30
-			}
+			c.AveragedOverDays = averagingDays(v.Averaged)
 		}
 
 		constraints = append(constraints, c)
+
+		// Collect days-off rules for deriving max consecutive days.
+		if ct == ConstraintMinDaysOff && v.Unit == Days && v.Amount > 0 {
+			daysOffRules = append(daysOffRules, r)
+		}
+	}
+
+	// Derive max-consecutive-days from days-off rules.
+	// "1 day off per 7" implies max 6 consecutive working days.
+	for _, r := range daysOffRules {
+		v := r.Current()
+		if v == nil || v.Per != PerWeek {
+			continue
+		}
+		maxConsecutive := 7 - v.Amount
+		if maxConsecutive <= 0 {
+			continue
+		}
+		constraints = append(constraints, Constraint{
+			Type:          ConstraintMaxConsecutive,
+			TimeScope:     PerWeek,
+			FacilityScope: r.Scope,
+			Limit:         maxConsecutive,
+			LimitUnit:     Days,
+			Operator:      OpLTE,
+			StaffTypes:    r.StaffTypes,
+			UnitTypes:     r.UnitTypes,
+			Enforcement:   r.Enforcement,
+			Jurisdiction:  code,
+			RuleKey:       Key("derived-max-consecutive-days"),
+			Citation:      "Derived from: " + r.Source.Citation(),
+		})
 	}
 
 	return constraints

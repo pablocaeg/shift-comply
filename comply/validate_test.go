@@ -356,6 +356,178 @@ func TestValidate_ExactlyAtLimit(t *testing.T) {
 	}
 }
 
+// ---------------------------------------------------------------------------
+// ValidateSwap tests
+// ---------------------------------------------------------------------------
+
+func TestValidateSwap_TakeShiftViolatesRest(t *testing.T) {
+	// A nurse already has a shift ending at 20:00. Taking a shift starting at
+	// 04:00 the next day gives only 8 hours rest — Spain requires 12.
+	req := comply.SwapRequest{
+		Jurisdiction:  comply.ES,
+		FacilityScope: comply.ScopePublicHealth,
+		StaffID:       "nurse-1",
+		StaffType:     comply.StaffStatutory,
+		CurrentShifts: []comply.Shift{
+			{Start: "2025-03-10T08:00:00", End: "2025-03-10T20:00:00"},
+		},
+		Add: &comply.Shift{Start: "2025-03-11T04:00:00", End: "2025-03-11T12:00:00"},
+	}
+	report, err := comply.ValidateSwap(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Result != resultFail {
+		t.Error("expected fail: taking shift creates 8h rest gap, Spain requires 12h")
+	}
+	found := false
+	for _, v := range report.Violations {
+		if v.RuleKey == comply.RuleMinRestBetweenShifts {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("expected min-rest-between-shifts violation")
+	}
+}
+
+func TestValidateSwap_SwapIsCompliant(t *testing.T) {
+	// A nurse swaps a morning shift for an afternoon shift the next day.
+	// Removing the 08-16 shift and adding 16-00 the next day is compliant.
+	req := comply.SwapRequest{
+		Jurisdiction: comply.ES,
+		StaffID:      "nurse-1",
+		StaffType:    comply.StaffStatutory,
+		CurrentShifts: []comply.Shift{
+			{Start: "2025-03-10T08:00:00", End: "2025-03-10T16:00:00"},
+			{Start: "2025-03-11T08:00:00", End: "2025-03-11T16:00:00"},
+			{Start: "2025-03-12T08:00:00", End: "2025-03-12T16:00:00"},
+		},
+		Remove: &comply.Shift{Start: "2025-03-11T08:00:00", End: "2025-03-11T16:00:00"},
+		Add:    &comply.Shift{Start: "2025-03-13T08:00:00", End: "2025-03-13T16:00:00"},
+	}
+	report, err := comply.ValidateSwap(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Result != resultPass {
+		t.Errorf("expected pass, got %s with violations:", report.Result)
+		for _, v := range report.Violations {
+			t.Logf("  %s: %s", v.RuleKey, v.Message)
+		}
+	}
+}
+
+func TestValidateSwap_TakeShiftExceedsWeeklyHours(t *testing.T) {
+	// A resident working 84h/week for 4 weeks (above ACGME 80h avg).
+	// They swap out a short shift and take a longer one, pushing avg over 80.
+	// Build 4 weeks of 6 days * 14h = 84h/week each.
+	var shifts []comply.Shift
+	for week := 0; week < 4; week++ {
+		baseDay := 3 + (week * 7) // March 3, 10, 17, 24
+		for d := 0; d < 6; d++ {
+			day := baseDay + d
+			shifts = append(shifts, comply.Shift{
+				Start: fmt.Sprintf("2025-03-%02dT06:00:00", day),
+				End:   fmt.Sprintf("2025-03-%02dT19:30:00", day), // 13.5h * 6 = 81h/week
+			})
+		}
+	}
+	// Take an additional 4h shift in week 4, pushing avg even higher.
+	req := comply.SwapRequest{
+		Jurisdiction:  comply.US,
+		StaffID:       "res-1",
+		StaffType:     comply.StaffResident,
+		CurrentShifts: shifts,
+		Add:           &comply.Shift{Start: "2025-03-30T08:00:00", End: "2025-03-30T12:00:00"},
+	}
+	report, err := comply.ValidateSwap(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, v := range report.Violations {
+		if v.RuleKey == comply.RuleMaxWeeklyHours {
+			found = true
+		}
+	}
+	if !found {
+		t.Error("expected max-weekly-hours violation after taking extra shift (>80h/week avg over 4 weeks)")
+	}
+}
+
+func TestValidateSwap_RemoveOnly(t *testing.T) {
+	// Giving away a shift (no replacement) should always be compliant.
+	req := comply.SwapRequest{
+		Jurisdiction: comply.USCA,
+		StaffID:      "nurse-1",
+		StaffType:    comply.StaffNurseRN,
+		CurrentShifts: []comply.Shift{
+			{Start: "2025-03-10T07:00:00", End: "2025-03-10T19:00:00"},
+			{Start: "2025-03-11T07:00:00", End: "2025-03-11T19:00:00"},
+		},
+		Remove: &comply.Shift{Start: "2025-03-11T07:00:00", End: "2025-03-11T19:00:00"},
+	}
+	report, err := comply.ValidateSwap(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if report.Result != resultPass {
+		t.Errorf("giving away a shift should always pass, got %s", report.Result)
+	}
+}
+
+func TestValidateSwap_UnknownJurisdiction(t *testing.T) {
+	req := comply.SwapRequest{
+		Jurisdiction: "XX",
+		StaffID:      "doc-1",
+		StaffType:    comply.StaffResident,
+	}
+	_, err := comply.ValidateSwap(req)
+	if err == nil {
+		t.Error("expected error for unknown jurisdiction")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Derived constraint tests
+// ---------------------------------------------------------------------------
+
+func TestGenerateConstraints_DerivedMaxConsecutiveDays(t *testing.T) {
+	// ACGME has "1 day off per week" → should derive "max 6 consecutive days"
+	constraints := comply.GenerateConstraints(comply.US, comply.ForStaff(comply.StaffResident))
+	found := false
+	for _, c := range constraints {
+		if c.RuleKey == "derived-max-consecutive-days" {
+			found = true
+			if c.Limit != 6 {
+				t.Errorf("expected derived max 6 consecutive days, got %.0f", c.Limit)
+			}
+			if c.Type != comply.ConstraintMaxConsecutive {
+				t.Errorf("expected type max_consecutive, got %s", c.Type)
+			}
+		}
+	}
+	if !found {
+		t.Error("expected derived-max-consecutive-days constraint from ACGME days-off rule")
+	}
+}
+
+func TestGenerateConstraints_NoPolicyDropped(t *testing.T) {
+	// Verify boolean/policy rules are included, not silently dropped.
+	constraints := comply.GenerateConstraints(comply.US, comply.ForStaff(comply.StaffResidentPGY1))
+	foundPolicy := false
+	for _, c := range constraints {
+		if c.Type == comply.ConstraintPolicy {
+			foundPolicy = true
+			break
+		}
+	}
+	if !foundPolicy {
+		t.Error("expected boolean/policy constraints to be included (e.g., moonlighting-prohibited-pgy1)")
+	}
+}
+
 func pad(d int) string {
 	return fmt.Sprintf("%02d", d)
 }

@@ -1,8 +1,12 @@
-// Package us_tx registers Texas healthcare scheduling regulations:
-// nurse mandatory overtime prohibition for hospitals (Health & Safety Code
-// Ch. 258), nurse safe harbor protections (Occ. Code Ch. 303), staffing
-// committee requirements (Health & Safety Code Ch. 257), and documented
-// absences of daily overtime, meal break, and rest break requirements.
+// Package us_tx registers Texas healthcare scheduling regulations.
+//
+// Texas is deliberately employer-friendly: no state overtime law, no meal/rest
+// break requirements, no mandatory nurse-patient ratios. Key provisions are the
+// nurse mandatory overtime prohibition (H&S Code Ch. 258) and nurse staffing
+// committee requirement (Ch. 257), both effective September 1, 2009.
+//
+// Documented regulatory ABSENCES are included as advisory rules with Amount=0
+// so comparison tools can show what Texas explicitly lacks vs other states.
 package us_tx
 
 import (
@@ -29,20 +33,12 @@ func New() *comply.JurisdictionDef {
 }
 
 func rules() []*comply.RuleDef {
-	r := make([]*comply.RuleDef, 0, 6)
-	r = append(r, nurseRules()...)
-	r = append(r, documentedAbsences()...)
-	return r
-}
-
-// Nurse Rules - TX Health & Safety Code Ch. 258, Occ. Code Ch. 303
-
-func nurseRules() []*comply.RuleDef {
 	return []*comply.RuleDef{
+		// === Enacted regulations ===
 		{
 			Key:         comply.RuleMandatoryOTProhibited,
-			Name:        "Nurse Mandatory Overtime Prohibition (Hospitals)",
-			Description: "Hospitals may not require nurses to work mandatory overtime. Refusal to work mandatory overtime does not constitute patient abandonment per Occ. Code 301.356.",
+			Name:        "Mandatory Overtime Prohibition (Nurses — Hospitals Only)",
+			Description: "Hospitals may not require nurses (RN or LVN) to work mandatory overtime. A nurse may refuse without penalty. On-call time cannot substitute for mandatory overtime.",
 			Category:    comply.CatOvertime,
 			Operator:    comply.OpBool,
 			StaffTypes:  []comply.Key{comply.StaffNurseRN, comply.StaffNurseLPN},
@@ -54,84 +50,84 @@ func nurseRules() []*comply.RuleDef {
 					Amount: 1,
 					Unit:   comply.Boolean,
 					Exceptions: []string{
-						"health care disaster",
-						"government emergency",
-						"unforeseen emergency",
-						"ongoing procedure",
+						"Health care disaster (natural or other) in county or contiguous county",
+						"Federal, state, or county declaration of emergency",
+						"Unforeseen emergency that does not regularly occur and could not be prudently anticipated",
+						"Nurse actively engaged in ongoing medical or surgical procedure",
 					},
 				},
 			},
 			Source: comply.Source{
 				Title:   "Texas Health and Safety Code",
-				Section: "Chapter 258, Sections 258.001-258.005 (S.B. 476)",
+				Section: "Chapter 258, SS 258.001-258.005 (S.B. 476, 81st Legislature)",
 				URL:     "https://statutes.capitol.texas.gov/Docs/HS/htm/HS.258.htm",
 			},
-			Notes: "Hospitals only, not clinics. No civil penalties specified. Refusal not abandonment per Occ. Code 301.356.",
+			Notes: "Narrower than NY: applies ONLY to hospitals (general and special), not nursing homes or clinics. No civil penalties — enforcement is through anti-retaliation (S 258.005). Refusal cannot constitute patient abandonment per Occ. Code S 301.356.",
 		},
 		{
 			Key:         "tx-nurse-safe-harbor",
-			Name:        "Nurse Safe Harbor Protection",
-			Description: "Nurses may invoke safe harbor when asked to accept an assignment that the nurse believes would expose a patient to risk of harm. Protects the nurse from retaliation.",
+			Name:        "Nurse Safe Harbor — Peer Review",
+			Description: "A nurse asked to engage in conduct they believe violates their duty to a patient may request peer review. Requesting peer review is protected activity.",
 			Category:    comply.CatCompensation,
 			Operator:    comply.OpBool,
+			StaffTypes:  []comply.Key{comply.StaffNurseRN, comply.StaffNurseLPN},
+			Scope:       comply.ScopeHospitals,
 			Enforcement: comply.Mandatory,
 			Values: []*comply.RuleValue{
 				{Since: comply.D(2009, time.September, 1), Amount: 1, Unit: comply.Boolean},
 			},
 			Source: comply.Source{
 				Title:   "Texas Occupations Code",
-				Section: "Chapter 303, Section 303.005",
+				Section: "Chapter 303, S 303.005",
 				URL:     "https://statutes.capitol.texas.gov/Docs/OC/htm/OC.303.htm",
 			},
 		},
 		{
 			Key:         "tx-nurse-staffing-committee",
 			Name:        "Nurse Staffing Committee Requirement",
-			Description: "Hospitals must establish nurse staffing committees with at least 60% nurse composition. Committees must meet quarterly. No mandatory nurse-patient ratios are imposed.",
+			Description: "Every hospital must establish a nurse staffing committee. At least 60% must be RNs providing direct patient care at least 50% of work time. Must meet at least quarterly.",
 			Category:    comply.CatStaffing,
 			Operator:    comply.OpBool,
+			Scope:       comply.ScopeHospitals,
 			Enforcement: comply.Mandatory,
 			Values: []*comply.RuleValue{
 				{Since: comply.D(2009, time.September, 1), Amount: 1, Unit: comply.Boolean},
 			},
 			Source: comply.Source{
 				Title:   "Texas Health and Safety Code",
-				Section: "Chapter 257 (S.B. 476)",
+				Section: "Chapter 257 (S.B. 476, 81st Legislature)",
 				URL:     "https://statutes.capitol.texas.gov/Docs/HS/htm/HS.257.htm",
 			},
-			Notes: "60% nurse composition, quarterly meetings. No mandatory ratios.",
+			Notes: "Committee develops staffing policies but does NOT mandate specific ratios. Only California has mandatory ratio laws.",
 		},
-	}
-}
-
-// Documented Absences - Texas has minimal state-level labor protections.
-
-func documentedAbsences() []*comply.RuleDef {
-	return []*comply.RuleDef{
+		// === Documented absences ===
+		// These are explicit "not enacted" markers so comparison tools can show
+		// what Texas lacks versus states like CA and NY.
 		{
 			Key:         comply.RuleOvertimeDailyThreshold,
-			Name:        "No Daily Overtime Threshold",
-			Description: "Texas does not impose a daily overtime threshold. Only FLSA weekly overtime (40 hours) applies.",
+			Name:        "Daily Overtime Threshold — NOT ENACTED",
+			Description: "Texas has no state daily overtime law. Only federal FLSA weekly overtime (40 hrs) applies.",
 			Category:    comply.CatOvertime,
-			Operator:    comply.OpGTE,
+			Operator:    comply.OpBool,
 			Enforcement: comply.Advisory,
 			Values: []*comply.RuleValue{
-				{Since: comply.D(1970, time.January, 1), Amount: 0, Unit: comply.Hours, Per: comply.PerDay},
+				{Since: comply.D(1900, time.January, 1), Amount: 0, Unit: comply.Boolean},
 			},
 			Source: comply.Source{
-				Title: "Texas Workforce Commission",
-				URL:   "https://efte.twc.texas.gov/flsa_does_and_doesnt_do.html",
+				Title:   "Texas Workforce Commission",
+				Section: "FLSA Does and Does Not Do",
+				URL:     "https://efte.twc.texas.gov/flsa_does_and_doesnt_do.html",
 			},
 		},
 		{
 			Key:         comply.RuleMealBreakThreshold,
-			Name:        "No Meal Break Requirement",
-			Description: "Texas does not require employers to provide meal breaks. Only FLSA rules apply.",
+			Name:        "Meal Break Requirement — NOT ENACTED",
+			Description: "Texas has no state meal break requirement for any workers, including healthcare.",
 			Category:    comply.CatBreaks,
-			Operator:    comply.OpGTE,
+			Operator:    comply.OpBool,
 			Enforcement: comply.Advisory,
 			Values: []*comply.RuleValue{
-				{Since: comply.D(1970, time.January, 1), Amount: 0, Unit: comply.Hours, Per: comply.PerShift},
+				{Since: comply.D(1900, time.January, 1), Amount: 0, Unit: comply.Boolean},
 			},
 			Source: comply.Source{
 				Title:   "Texas Workforce Commission",
@@ -141,13 +137,13 @@ func documentedAbsences() []*comply.RuleDef {
 		},
 		{
 			Key:         comply.RuleRestBreakDuration,
-			Name:        "No Rest Break Requirement",
-			Description: "Texas does not require employers to provide rest breaks. Only FLSA rules apply.",
+			Name:        "Rest Break Requirement — NOT ENACTED",
+			Description: "Texas has no state rest break requirement.",
 			Category:    comply.CatBreaks,
-			Operator:    comply.OpGTE,
+			Operator:    comply.OpBool,
 			Enforcement: comply.Advisory,
 			Values: []*comply.RuleValue{
-				{Since: comply.D(1970, time.January, 1), Amount: 0, Unit: comply.Minutes, Per: comply.PerOccurrence},
+				{Since: comply.D(1900, time.January, 1), Amount: 0, Unit: comply.Boolean},
 			},
 			Source: comply.Source{
 				Title:   "Texas Workforce Commission",

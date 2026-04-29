@@ -12,7 +12,8 @@ import (
 //
 // It validates time-based rules that can be derived from shift start/end times:
 // max shift duration, max weekly hours (with averaging), min rest between shifts,
-// min rest after extended shifts, days off per week, and max guards per month.
+// min rest after extended shifts, days off per week, max guards per month, and
+// max consecutive night shifts.
 //
 // Rules requiring data not present in the schedule (nurse-patient ratios, break
 // compliance, overtime pay) are skipped.
@@ -33,6 +34,9 @@ func Validate(schedule Schedule) (*ComplianceReport, error) {
 		baseOpts = append(baseOpts, ForScope(schedule.FacilityScope))
 	}
 
+	// Resolve night period for this jurisdiction.
+	nightStart, nightEnd := resolveNightPeriod(schedule.Jurisdiction)
+
 	report := &ComplianceReport{
 		Jurisdiction: schedule.Jurisdiction,
 	}
@@ -44,7 +48,6 @@ func Validate(schedule Schedule) (*ComplianceReport, error) {
 
 		staffType := shifts[0].StaffType
 
-		// Build a new slice for each staff member to avoid mutating baseOpts.
 		staffOpts := make([]QueryOption, len(baseOpts), len(baseOpts)+1)
 		copy(staffOpts, baseOpts)
 		staffOpts = append(staffOpts, ForStaff(staffType))
@@ -58,7 +61,7 @@ func Validate(schedule Schedule) (*ComplianceReport, error) {
 			}
 			report.ConstraintsChecked++
 
-			violations := checkRule(r, v, staffID, shifts)
+			violations := dispatchRule(r, v, staffID, shifts, nightStart, nightEnd)
 			report.Violations = append(report.Violations, violations...)
 		}
 	}
@@ -71,6 +74,189 @@ func Validate(schedule Schedule) (*ComplianceReport, error) {
 
 	return report, nil
 }
+
+// SwapRequest describes a proposed shift swap for compliance validation.
+type SwapRequest struct {
+	// Jurisdiction to validate against.
+	Jurisdiction Code `json:"jurisdiction"`
+
+	// FacilityScope filters rules by facility type.
+	FacilityScope Scope `json:"facility_scope,omitempty"`
+
+	// StaffID is the worker whose schedule will change.
+	StaffID string `json:"staff_id"`
+
+	// StaffType is the worker's role.
+	StaffType Key `json:"staff_type"`
+
+	// CurrentShifts are all of the worker's existing shift assignments.
+	CurrentShifts []Shift `json:"current_shifts"`
+
+	// Remove is the shift being given away (nil if just taking a new shift).
+	Remove *Shift `json:"remove,omitempty"`
+
+	// Add is the shift being received (nil if just giving away a shift).
+	Add *Shift `json:"add,omitempty"`
+}
+
+// ValidateSwap checks whether a proposed shift swap would leave the worker's
+// schedule compliant with jurisdiction rules. It simulates the swap (removing
+// the old shift, adding the new one) and validates the resulting schedule.
+//
+// This is the primary integration point for exchange systems: call this before
+// accepting a swap to ensure it won't create a compliance violation.
+func ValidateSwap(req SwapRequest) (*ComplianceReport, error) {
+	if For(req.Jurisdiction) == nil {
+		return nil, fmt.Errorf("unknown jurisdiction: %s", req.Jurisdiction)
+	}
+
+	// Build the post-swap shift list.
+	shifts := make([]Shift, 0, len(req.CurrentShifts)+1)
+	for _, s := range req.CurrentShifts {
+		// Skip the shift being removed (match by start+end time).
+		if req.Remove != nil && s.Start == req.Remove.Start && s.End == req.Remove.End {
+			continue
+		}
+		shifts = append(shifts, s)
+	}
+	if req.Add != nil {
+		add := *req.Add
+		add.StaffID = req.StaffID
+		add.StaffType = req.StaffType
+		shifts = append(shifts, add)
+	}
+
+	// Stamp all shifts with the worker's identity.
+	for i := range shifts {
+		shifts[i].StaffID = req.StaffID
+		shifts[i].StaffType = req.StaffType
+	}
+
+	return Validate(Schedule{
+		Jurisdiction:  req.Jurisdiction,
+		FacilityScope: req.FacilityScope,
+		Shifts:        shifts,
+	})
+}
+
+// ---------------------------------------------------------------------------
+// Rule dispatch — uses Category + Operator instead of hardcoded key maps.
+// New jurisdiction keys are automatically handled by their category.
+// ---------------------------------------------------------------------------
+
+func dispatchRule(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift, nightStart, nightEnd int) []Violation {
+	// Boolean/policy rules can't be validated against shift times.
+	if r.Operator == OpBool {
+		return nil
+	}
+
+	switch r.Category {
+	case CatWorkHours:
+		return dispatchWorkHours(r, v, staffID, shifts, nightStart, nightEnd)
+	case CatRest:
+		return dispatchRest(r, v, staffID, shifts)
+	case CatOnCall:
+		return dispatchOnCall(r, v, staffID, shifts)
+	case CatNightWork:
+		return dispatchNightWork(r, v, staffID, shifts, nightStart, nightEnd)
+	default:
+		// Categories we can't validate from shift times alone:
+		// CatOvertime (pay rates), CatStaffing (ratios), CatBreaks (not in shift data),
+		// CatCompensation, CatLeave.
+		return nil
+	}
+}
+
+func dispatchWorkHours(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift, nightStart, nightEnd int) []Violation {
+	switch r.Operator {
+	case OpLTE:
+		switch v.Per {
+		case PerShift:
+			return checkMaxShiftHours(r, v, staffID, shifts)
+		case PerWeek:
+			return checkMaxWeeklyHours(r, v, staffID, shifts)
+		case PerDay:
+			return checkMaxDailyHours(r, v, staffID, shifts)
+		case PerYear:
+			// Annual hour limits need a full year of data; skip for now.
+			return nil
+		}
+	}
+	return nil
+}
+
+func dispatchRest(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift) []Violation {
+	switch r.Operator {
+	case OpGTE:
+		switch v.Per {
+		case PerShift, PerDay:
+			return checkMinRestBetweenShifts(r, v, staffID, shifts)
+		case PerWeek:
+			return checkDaysOffPerWeek(r, v, staffID, shifts)
+		case PerOccurrence:
+			// Min rest after extended shift or guard.
+			return checkMinRestAfterExtended(r, v, staffID, shifts)
+		}
+	}
+	return nil
+}
+
+func dispatchOnCall(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift) []Violation {
+	if r.Operator == OpLTE && v.Per == PerMonth {
+		return checkMaxGuardsMonthly(r, v, staffID, shifts)
+	}
+	return nil
+}
+
+func dispatchNightWork(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift, nightStart, nightEnd int) []Violation {
+	if r.Operator == OpLTE && v.Unit == Count {
+		return checkMaxConsecutiveNights(r, v, staffID, shifts, nightStart, nightEnd)
+	}
+	return nil
+}
+
+// ---------------------------------------------------------------------------
+// Night period resolution — reads from jurisdiction rules, not hardcoded.
+// ---------------------------------------------------------------------------
+
+// resolveNightPeriod finds the night period start/end hours for a jurisdiction
+// by walking the jurisdiction chain. Falls back to 19:00-07:00 if not defined.
+func resolveNightPeriod(code Code) (start, end int) {
+	start, end = 19, 7 // default fallback
+	rules := EffectiveRules(code)
+	for _, r := range rules {
+		if r.Key == RuleNightPeriodStart {
+			if v := r.Current(); v != nil {
+				start = int(v.Amount)
+			}
+		}
+		if r.Key == RuleNightPeriodEnd {
+			if v := r.Current(); v != nil {
+				end = int(v.Amount)
+			}
+		}
+	}
+	return start, end
+}
+
+// isNightShift returns true if the shift overlaps with the night period
+// as defined by the jurisdiction (not hardcoded).
+func isNightShift(s parsedShift, nightStart, nightEnd int) bool {
+	if s.start.Hour() >= nightStart {
+		return true
+	}
+	// Shift spans midnight and ends in the morning.
+	startDay := s.start.Truncate(24 * time.Hour)
+	endDay := s.end.Truncate(24 * time.Hour)
+	if endDay.After(startDay) && s.end.Hour() <= nightEnd {
+		return true
+	}
+	return false
+}
+
+// ---------------------------------------------------------------------------
+// Shift parsing and grouping (unchanged).
+// ---------------------------------------------------------------------------
 
 type parsedShift struct {
 	Shift
@@ -117,54 +303,9 @@ func groupByStaff(shifts []parsedShift) map[string][]parsedShift {
 	return groups
 }
 
-// maxShiftKeys contains all rule keys that represent max shift hour limits.
-var maxShiftKeys = map[Key]bool{
-	RuleMaxShiftHours:              true,
-	"max-shift-hours-non-resident": true,
-}
-
-var maxWeeklyKeys = map[Key]bool{
-	RuleMaxWeeklyHours:         true,
-	RuleMaxCombinedWeeklyHours: true,
-	RuleMaxOrdinaryWeeklyHours: true,
-}
-
-var minRestKeys = map[Key]bool{
-	RuleMinRestBetweenShifts:         true,
-	"es-mir-min-rest-between-shifts": true,
-}
-
-var daysOffKeys = map[Key]bool{
-	RuleDaysOffPerWeek: true,
-	RuleMinDayOfRest:   true,
-}
-
-func checkRule(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift) []Violation {
-	if maxShiftKeys[r.Key] {
-		return checkMaxShiftHours(r, v, staffID, shifts)
-	}
-	if maxWeeklyKeys[r.Key] {
-		return checkMaxWeeklyHours(r, v, staffID, shifts)
-	}
-	if minRestKeys[r.Key] {
-		return checkMinRestBetweenShifts(r, v, staffID, shifts)
-	}
-	if daysOffKeys[r.Key] {
-		return checkDaysOffPerWeek(r, v, staffID, shifts)
-	}
-	switch r.Key {
-	case RuleMinRestAfterExtended:
-		return checkMinRestAfterExtended(r, v, staffID, shifts)
-	case RuleMaxGuardsMonthly:
-		return checkMaxGuardsMonthly(r, v, staffID, shifts)
-	case RuleMaxConsecutiveNights:
-		return checkMaxConsecutiveNights(r, v, staffID, shifts)
-	case RuleMinRestAfterGuard:
-		return checkMinRestAfterExtended(r, v, staffID, shifts)
-	default:
-		return nil
-	}
-}
+// ---------------------------------------------------------------------------
+// Check functions.
+// ---------------------------------------------------------------------------
 
 func checkMaxShiftHours(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift) []Violation {
 	limit := v.Amount
@@ -187,6 +328,34 @@ func checkMaxShiftHours(r *RuleDef, v *RuleValue, staffID string, shifts []parse
 	return violations
 }
 
+func checkMaxDailyHours(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift) []Violation {
+	limit := v.Amount
+	var violations []Violation
+
+	// Group hours by calendar date.
+	daily := make(map[string]float64)
+	for _, s := range shifts {
+		day := s.start.Format("2006-01-02")
+		daily[day] += s.duration.Hours()
+	}
+
+	for day, hours := range daily {
+		if hours > limit {
+			violations = append(violations, Violation{
+				RuleKey:  r.Key,
+				RuleName: r.Name,
+				Severity: r.Enforcement,
+				StaffID:  staffID,
+				Message:  fmt.Sprintf("%.1f hours on %s, maximum is %.0f hours/day", hours, day, limit),
+				Citation: r.Source.Citation(),
+				Actual:   math.Round(hours*10) / 10,
+				Limit:    limit,
+			})
+		}
+	}
+	return violations
+}
+
 func checkMaxWeeklyHours(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift) []Violation {
 	if len(shifts) == 0 {
 		return nil
@@ -194,20 +363,11 @@ func checkMaxWeeklyHours(r *RuleDef, v *RuleValue, staffID string, shifts []pars
 
 	limit := v.Amount
 
-	// Determine averaging window
 	windowDays := 7
 	if v.Averaged != nil {
-		switch v.Averaged.Unit {
-		case PeriodWeeks:
-			windowDays = v.Averaged.Count * 7
-		case PeriodDays:
-			windowDays = v.Averaged.Count
-		case PeriodMonths:
-			windowDays = v.Averaged.Count * 30
-		}
+		windowDays = averagingDays(v.Averaged)
 	}
 
-	// Find the date range across all shifts
 	minDate := shifts[0].start
 	maxDate := shifts[0].end
 	for _, s := range shifts {
@@ -275,7 +435,6 @@ func checkMinRestBetweenShifts(r *RuleDef, v *RuleValue, staffID string, shifts 
 	for i := 1; i < len(shifts); i++ {
 		gap := shifts[i].start.Sub(shifts[i-1].end).Hours()
 		if gap < 0 {
-			// Overlapping shifts: flag as zero rest
 			violations = append(violations, Violation{
 				RuleKey:  r.Key,
 				RuleName: r.Name,
@@ -343,7 +502,14 @@ func checkDaysOffPerWeek(r *RuleDef, v *RuleValue, staffID string, shifts []pars
 		return nil
 	}
 
+	// If the value is in hours (e.g., EU "35 hours weekly rest"), convert to days.
+	// Otherwise treat as number of days off required.
 	requiredDaysOff := v.Amount
+	if v.Unit == Hours {
+		// Hours-based weekly rest: check the longest continuous gap per week.
+		return checkMinWeeklyRestHours(r, v, staffID, shifts)
+	}
+
 	var violations []Violation
 
 	minDate := shifts[0].start.Truncate(24 * time.Hour)
@@ -355,13 +521,8 @@ func checkDaysOffPerWeek(r *RuleDef, v *RuleValue, staffID string, shifts []pars
 		daysWorked := make(map[string]bool)
 		for _, s := range shifts {
 			if s.end.After(weekStart) && s.start.Before(weekEnd) {
-				// Use shift start date and end date, but only count a day
-				// as worked if the shift was active during working hours of that day.
-				// Simpler approach: count each calendar date where the shift has
-				// at least 1 hour of overlap.
 				day := s.start.Truncate(24 * time.Hour)
 				endDay := s.end.Truncate(24 * time.Hour)
-				// If shift ends exactly at midnight, don't count that next day
 				if s.end.Equal(endDay) && !endDay.Equal(s.start.Truncate(24*time.Hour)) {
 					endDay = endDay.Add(-24 * time.Hour)
 				}
@@ -386,6 +547,76 @@ func checkDaysOffPerWeek(r *RuleDef, v *RuleValue, staffID string, shifts []pars
 				Citation: r.Source.Citation(),
 				Actual:   float64(daysOff),
 				Limit:    requiredDaysOff,
+			})
+		}
+	}
+
+	return violations
+}
+
+// checkMinWeeklyRestHours validates hour-based weekly rest (e.g., EU 35 hours,
+// Spain 36 hours). Finds the longest continuous gap between shifts per week.
+func checkMinWeeklyRestHours(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift) []Violation {
+	if len(shifts) == 0 {
+		return nil
+	}
+
+	requiredHours := v.Amount
+	var violations []Violation
+
+	windowDays := 7
+	if v.Averaged != nil {
+		windowDays = averagingDays(v.Averaged)
+	}
+
+	minDate := shifts[0].start.Truncate(24 * time.Hour)
+	maxDate := shifts[len(shifts)-1].end
+
+	for weekStart := minDate; weekStart.Before(maxDate); weekStart = weekStart.Add(7 * 24 * time.Hour) {
+		weekEnd := weekStart.Add(time.Duration(windowDays) * 24 * time.Hour)
+
+		// Collect shifts in this window, sorted.
+		var windowShifts []parsedShift
+		for _, s := range shifts {
+			if s.end.After(weekStart) && s.start.Before(weekEnd) {
+				windowShifts = append(windowShifts, s)
+			}
+		}
+
+		// Find the longest gap.
+		longestGap := 0.0
+		cursor := weekStart
+		for _, s := range windowShifts {
+			effectiveStart := s.start
+			if effectiveStart.Before(weekStart) {
+				effectiveStart = weekStart
+			}
+			gap := effectiveStart.Sub(cursor).Hours()
+			if gap > longestGap {
+				longestGap = gap
+			}
+			effectiveEnd := s.end
+			if effectiveEnd.After(cursor) {
+				cursor = effectiveEnd
+			}
+		}
+		// Gap after last shift to end of window.
+		finalGap := weekEnd.Sub(cursor).Hours()
+		if finalGap > longestGap {
+			longestGap = finalGap
+		}
+
+		if longestGap < requiredHours {
+			violations = append(violations, Violation{
+				RuleKey:  r.Key,
+				RuleName: r.Name,
+				Severity: r.Enforcement,
+				StaffID:  staffID,
+				Message: fmt.Sprintf("Longest continuous rest in week starting %s is %.1f hours, minimum is %.0f hours",
+					weekStart.Format("2006-01-02"), longestGap, requiredHours),
+				Citation: r.Source.Citation(),
+				Actual:   math.Round(longestGap*10) / 10,
+				Limit:    requiredHours,
 			})
 		}
 	}
@@ -423,7 +654,7 @@ func checkMaxGuardsMonthly(r *RuleDef, v *RuleValue, staffID string, shifts []pa
 	return violations
 }
 
-func checkMaxConsecutiveNights(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift) []Violation {
+func checkMaxConsecutiveNights(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift, nightStart, nightEnd int) []Violation {
 	limit := int(v.Amount)
 	var violations []Violation
 
@@ -431,7 +662,7 @@ func checkMaxConsecutiveNights(r *RuleDef, v *RuleValue, staffID string, shifts 
 	var streakStart time.Time
 
 	for _, s := range shifts {
-		if isNightShift(s) {
+		if isNightShift(s, nightStart, nightEnd) {
 			if consecutive == 0 {
 				streakStart = s.start
 			}
@@ -457,18 +688,20 @@ func checkMaxConsecutiveNights(r *RuleDef, v *RuleValue, staffID string, shifts 
 	return violations
 }
 
-// isNightShift returns true if the shift overlaps with the night period.
-// A shift is considered a night shift if it starts at 19:00 or later,
-// or if it spans past midnight (end date is after start date).
-func isNightShift(s parsedShift) bool {
-	if s.start.Hour() >= 19 {
-		return true
+// ---------------------------------------------------------------------------
+// Helpers.
+// ---------------------------------------------------------------------------
+
+// averagingDays converts an AveragingPeriod to days using proper calendar math.
+func averagingDays(a *AveragingPeriod) int {
+	switch a.Unit {
+	case PeriodDays:
+		return a.Count
+	case PeriodWeeks:
+		return a.Count * 7
+	case PeriodMonths:
+		// Use 30.44 days/month (365.25/12) for better accuracy than flat 30.
+		return int(math.Round(float64(a.Count) * 30.44))
 	}
-	// Shift spans midnight: start and end are on different calendar days
-	startDay := s.start.Truncate(24 * time.Hour)
-	endDay := s.end.Truncate(24 * time.Hour)
-	if endDay.After(startDay) && s.end.Hour() <= 12 {
-		return true
-	}
-	return false
+	return 7
 }
