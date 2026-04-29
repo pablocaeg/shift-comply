@@ -59,7 +59,7 @@ func residentRules() []*comply.RuleDef {
 				{Since: comply.D(1989, time.July, 1), Amount: 24, Unit: comply.Hours, Per: comply.PerShift},
 			},
 			Source: bellSource,
-			Notes: "Adopted following the 1984 death of Libby Zion at New York Hospital. Preceded ACGME national standards by 14 years.",
+			Notes:  "Adopted following the 1984 death of Libby Zion at New York Hospital. Preceded ACGME national standards by 14 years.",
 		},
 		{
 			Key:         comply.RuleMaxWeeklyHours,
@@ -94,7 +94,7 @@ func residentRules() []*comply.RuleDef {
 				{Since: comply.D(1989, time.July, 1), Amount: 8, Unit: comply.Hours, Per: comply.PerShift},
 			},
 			Source: bellSource,
-			Notes: "Unlike ACGME's 'should have' (recommended) 8-hour rest, New York's is mandatory.",
+			Notes:  "Unlike ACGME's 'should have' (recommended) 8-hour rest, New York's is mandatory.",
 		},
 		{
 			Key:         "ny-resident-ed-max-hours",

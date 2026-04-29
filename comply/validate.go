@@ -152,7 +152,7 @@ func dispatchRule(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift
 
 	switch r.Category {
 	case CatWorkHours:
-		return dispatchWorkHours(r, v, staffID, shifts, nightStart, nightEnd)
+		return dispatchWorkHours(r, v, staffID, shifts)
 	case CatRest:
 		return dispatchRest(r, v, staffID, shifts)
 	case CatOnCall:
@@ -167,7 +167,7 @@ func dispatchRule(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift
 	}
 }
 
-func dispatchWorkHours(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift, nightStart, nightEnd int) []Violation {
+func dispatchWorkHours(r *RuleDef, v *RuleValue, staffID string, shifts []parsedShift) []Violation {
 	switch r.Operator {
 	case OpLTE:
 		switch v.Per {
