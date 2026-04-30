@@ -63,7 +63,39 @@ func handleJurisdictions(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	writeJSON(w, comply.All())
+
+	type summary struct {
+		Code      comply.Code             `json:"code"`
+		Name      string                  `json:"name"`
+		LocalName string                  `json:"local_name,omitempty"`
+		Type      comply.JurisdictionType `json:"type"`
+		Parent    comply.Code             `json:"parent,omitempty"`
+		Rules     int                     `json:"rules"`
+		Effective int                     `json:"effective_rules"`
+	}
+
+	all := comply.All()
+	totalRules := 0
+	result := make([]summary, 0, len(all))
+	for _, j := range all {
+		effective := len(comply.EffectiveRules(j.Code))
+		totalRules += len(j.Rules)
+		result = append(result, summary{
+			Code:      j.Code,
+			Name:      j.Name,
+			LocalName: j.LocalName,
+			Type:      j.Type,
+			Parent:    j.Parent,
+			Rules:     len(j.Rules),
+			Effective: effective,
+		})
+	}
+
+	writeJSON(w, map[string]any{
+		"jurisdictions": result,
+		"total":         len(result),
+		"total_rules":   totalRules,
+	})
 }
 
 func handleRules(w http.ResponseWriter, r *http.Request) {

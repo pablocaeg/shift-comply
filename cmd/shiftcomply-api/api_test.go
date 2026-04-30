@@ -47,12 +47,32 @@ func TestJurisdictionsEndpoint(t *testing.T) {
 	if w.Header().Get("Content-Type") != "application/json" {
 		t.Error("expected application/json content type")
 	}
-	var jurisdictions []comply.JurisdictionDef
-	if err := json.Unmarshal(w.Body.Bytes(), &jurisdictions); err != nil {
+	var result struct {
+		Jurisdictions []struct {
+			Code      string `json:"code"`
+			Name      string `json:"name"`
+			Rules     int    `json:"rules"`
+			Effective int    `json:"effective_rules"`
+		} `json:"jurisdictions"`
+		Total      int `json:"total"`
+		TotalRules int `json:"total_rules"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
 		t.Fatalf("invalid JSON: %v", err)
 	}
-	if len(jurisdictions) == 0 {
+	if len(result.Jurisdictions) == 0 {
 		t.Error("expected at least one jurisdiction")
+	}
+	if result.Total != len(result.Jurisdictions) {
+		t.Errorf("total %d != len(jurisdictions) %d", result.Total, len(result.Jurisdictions))
+	}
+	if result.TotalRules == 0 {
+		t.Error("expected total_rules > 0")
+	}
+	for _, j := range result.Jurisdictions {
+		if j.Code == "" || j.Name == "" {
+			t.Error("jurisdiction missing code or name")
+		}
 	}
 }
 
