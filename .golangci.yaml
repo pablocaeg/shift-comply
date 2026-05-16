@@ -29,6 +29,10 @@ linters:
   exclusions:
     paths:
       - website
+    rules:
+      - linters:
+          - goconst
+        path: jurisdictions/
 formatters:
   enable:
     - gofmt
