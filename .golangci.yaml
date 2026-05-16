@@ -33,6 +33,9 @@ linters:
       - linters:
           - goconst
         path: jurisdictions/
+      - linters:
+          - goconst
+        path: _test\.go
 formatters:
   enable:
     - gofmt
