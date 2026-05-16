@@ -12,8 +12,9 @@ func TestAllJurisdictionsRegistered(t *testing.T) {
 	expected := []comply.Code{
 		comply.US, comply.USCA, comply.USNY, comply.USTX, comply.USFL,
 		comply.USMA, comply.USIL, comply.USOR,
-		comply.EU, comply.AT, comply.BE, comply.DE, comply.FR, comply.HU,
-		comply.IE, comply.IT, comply.NL, comply.PL, comply.PT, comply.SE,
+		comply.EU, comply.AT, comply.BE, comply.CH, comply.CZ, comply.DE,
+		comply.DK, comply.FI, comply.FR, comply.GR, comply.HR, comply.HU,
+		comply.IE, comply.IT, comply.NL, comply.PL, comply.PT, comply.RO, comply.SE,
 		comply.ES, comply.ESCT, comply.ESMD,
 	}
 	for _, code := range expected {
@@ -36,8 +37,8 @@ func TestAllJurisdictionsRegistered(t *testing.T) {
 
 func TestJurisdictionCount(t *testing.T) {
 	all := comply.All()
-	if len(all) != 23 {
-		t.Errorf("expected 23 jurisdictions, got %d", len(all))
+	if len(all) != 30 {
+		t.Errorf("expected 30 jurisdictions, got %d", len(all))
 	}
 }
 
