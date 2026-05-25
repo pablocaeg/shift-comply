@@ -55,24 +55,63 @@ The integration: when a hospital onboards and selects "Catalonia, public hospita
 
 ## Coverage
 
-### All Jurisdictions
+### US Jurisdictions
 
 | Jurisdiction | Rules | Key Sources |
 |---|---|---|
-| **US Federal** | 17 | ACGME CPR Section VI (accreditation, not statute), FLSA 29 U.S.C. S207, VA Personnel Enhancement Act |
-| **California** | 32 | Title 22 CCR S70217 (nurse ratios), Labor Code S510, IWC Wage Order 5-2001 S3(H), Gov. Code S19851.2 |
-| **New York** | 12 | 10 NYCRR S405.4 (Bell Regulations), Labor Law S167 (nurse OT ban, $1K-$3K penalties), PHL S2805-t (ICU 1:2 ratio) |
-| **Texas** | 6 | H&S Code Ch. 258 (nurse OT ban, hospitals only), Occ. Code Ch. 303 (safe harbor), H&S Code Ch. 257 (staffing committees) |
-| **Florida** | 6 | FAC 59A-4.108 (nursing home 16h shift limit). Documented absences: no nurse OT ban, no breaks, no ratios |
-| **Massachusetts** | 10 | G.L. c.111 S226 (nurse OT ban, 16h cap), c.111 S231 (ICU 1:2 ratio), G.L. c.149 S100 (meal break) |
-| **Illinois** | 9 | 210 ILCS 85/6.14 (ACGME codified), 85/10.9 (nurse OT ban), ODRISA 820 ILCS 140 (day of rest, meal breaks) |
-| **Oregon** | 8 | ORS 441.166 (nurse OT ban, 12h cap, 48h weekly, 10h rest), HB 2697 (2023 amendments), ORS 653.261 (meal/rest breaks) |
-| **EU** | 8 | Directive 2003/88/EC, CJEU case law (SIMAP, Jaeger, Matzak) |
-| **Spain** | 21 | RDL 2/2015 (Estatuto de los Trabajadores), Ley 55/2003 (Estatuto Marco, public health only), RD 1146/2006 (MIR) |
-| **Catalonia** | 6 | III Acord ICS (DOGC Jan 23, 2024, Resolucio EMT/74/2024). 4 guards/month, age exemptions, post-guard rest |
-| **Madrid** | 3 | SERMAS Resolution Feb 26, 2021 + STS 280/2022 (March 30, 2022). 36-hour weekly rest, 1,642.5 annual hours |
+| **US Federal** | 17 | ACGME CPR Section VI, FLSA 29 U.S.C. S207, VA Personnel Enhancement Act |
+| **California** | 32 | Title 22 CCR S70217 (nurse ratios), Labor Code S510, IWC Wage Order 5-2001 |
+| **New York** | 12 | 10 NYCRR S405.4 (Bell Regulations), Labor Law S167 (nurse OT ban), PHL S2805-t |
+| **Texas** | 6 | H&S Code Ch. 258 (nurse OT ban), Occ. Code Ch. 303 (safe harbor) |
+| **Florida** | 6 | FAC 59A-4.108. Documented absences: no nurse OT ban, no breaks, no ratios |
+| **Massachusetts** | 10 | G.L. c.111 S226 (nurse OT ban, 16h cap), c.111 S231 (ICU 1:2 ratio) |
+| **Illinois** | 9 | 210 ILCS 85/6.14 (ACGME codified), 85/10.9 (nurse OT ban) |
+| **Oregon** | 8 | ORS 441.166 (nurse OT ban, 12h cap, 48h weekly, 10h rest) |
 
-**138 rules across 12 jurisdictions.** Every rule has a verified legal citation and correct facility scope.
+### EU / EEA / Switzerland
+
+| Jurisdiction | Rules | Key Sources |
+|---|---|---|
+| **EU** | 8 | Directive 2003/88/EC, CJEU case law (SIMAP, Jaeger, Matzak) |
+| **Austria** | 11 | AZG, KA-AZG (hospital-specific: 25h extended service, opt-out to 60h/week) |
+| **Belgium** | 12 | Loi sur le travail 1971 (38h week, 20:00 night start, 12h hospital shifts) |
+| **Bulgaria** | 9 | Kodeks na truda (12h rest, 48h weekly rest, 150h OT cap) |
+| **Croatia** | 11 | Zakon o radu NN 93/14 (12h rest, 36h weekly, 180h OT) |
+| **Cyprus** | 8 | Organisation of Working Time Law N.63(I)/2002 |
+| **Czech Republic** | 12 | Zakonik prace 262/2006 (12h max shift, 26-week avg, 8h healthcare exception) |
+| **Denmark** | 8 | BEK 324/2020. Unique: most rules set by collective agreement, not statute |
+| **Estonia** | 8 | Toeolepinguseadus (28 calendar days leave, 36h weekly rest) |
+| **Finland** | 11 | Tyoaikalaki 872/2019 (250h OT cap, 30min breaks) |
+| **France** | 17 | Code du travail (35h week, no opt-out, 30 days leave, 8 guards/month for interns) |
+| **Germany** | 14 | ArbZG, TV-Aerzte/VKA (24h on-call, opt-out via S 7(2a), 10h hospital rest) |
+| **Greece** | 12 | PD 88/1999 (opt-out, 24h efimeria guards) |
+| **Hungary** | 11 | Mt. Act I/2012, Eutv. (extensive opt-out, 48h weekly rest) |
+| **Iceland** | 5 | Regulation 1000/2004, Orlofsloegin (24 days leave) |
+| **Ireland** | 11 | Working Time Act 1997 (opt-out for NCHDs, 24h max shifts) |
+| **Italy** | 11 | D.Lgs. 66/2003, Legge 161/2014 (no opt-out, 12h shifts, 250h OT) |
+| **Latvia** | 9 | Darba likums (12h rest, 42h weekly rest) |
+| **Lithuania** | 9 | Darbo kodeksas XII-2603 (12h max shift, 3-month avg) |
+| **Luxembourg** | 8 | Code du travail (44h weekly rest, 26 days leave) |
+| **Malta** | 9 | S.L. 452.87 (17-week averaging, 24 days + 14 public holidays) |
+| **Netherlands** | 11 | ATW (12h max shift, 16-week avg, 7 max consecutive days/nights) |
+| **Norway** | 12 | Arbeidsmiljoeloven (9h daily, no opt-out, 25 days leave) |
+| **Poland** | 14 | Kodeks Pracy, u.d.l. (37h55min healthcare week, extensive opt-out) |
+| **Portugal** | 14 | Codigo do Trabalho Lei 7/2009 (SNS 35h week, 60min breaks) |
+| **Romania** | 12 | Codul Muncii 53/2003 (12h rest, 48h weekly rest, 12h daily max) |
+| **Slovenia** | 10 | ZDR-1 (12h rest, 10h max shift, 170h OT) |
+| **Slovakia** | 11 | Zakonnik prace 311/2001 (12h rest, 12h max shift) |
+| **Spain** | 21 | RDL 2/2015, Ley 55/2003 (Estatuto Marco), RD 1146/2006 (MIR) |
+| **Sweden** | 11 | Arbetstidslag SFS 1982:673 (no opt-out, 25 days leave) |
+| **Switzerland** | 10 | ArG SR 822.11 (own 50h limit, not EU, 14h daily span, 170h OT) |
+
+### Spanish Autonomous Communities
+
+| Jurisdiction | Rules | Key Sources |
+|---|---|---|
+| **Catalonia** | 6 | III Acord ICS (DOGC Jan 2024). 4 guards/month, age exemptions, post-guard rest |
+| **Madrid** | 3 | SERMAS Resolution Feb 2021 + STS 280/2022. 36h weekly rest, 1,642.5 annual hours |
+
+**449 rules across 41 jurisdictions.** Every rule has a legal citation. [Full EU comparison table](EU_COMPARISON.md).
 
 ## Install
 
