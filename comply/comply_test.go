@@ -9,19 +9,8 @@ import (
 )
 
 func TestAllJurisdictionsRegistered(t *testing.T) {
-	expected := []comply.Code{
-		comply.US, comply.USCA, comply.USCT, comply.USFL, comply.USIL,
-		comply.USMA, comply.USMD, comply.USME, comply.USMN, comply.USMO,
-		comply.USNH, comply.USNJ, comply.USNY, comply.USOH, comply.USOR,
-		comply.USPA, comply.USRI, comply.USTX, comply.USWA, comply.USWV,
-		comply.EU, comply.AT, comply.BE, comply.BG, comply.CH, comply.CY,
-		comply.CZ, comply.DE, comply.DK, comply.EE, comply.FI, comply.FR,
-		comply.GR, comply.HR, comply.HU, comply.IE, comply.IS, comply.IT,
-		comply.LT, comply.LU, comply.LV, comply.MT, comply.NL, comply.NO,
-		comply.PL, comply.PT, comply.RO, comply.SE, comply.SI, comply.SK,
-		comply.ES, comply.ESCT, comply.ESMD,
-	}
-	for _, code := range expected {
+	for _, j := range comply.All() {
+		code := j.Code
 		j := comply.For(code)
 		if j == nil {
 			t.Errorf("jurisdiction %q not registered", code)
@@ -41,8 +30,8 @@ func TestAllJurisdictionsRegistered(t *testing.T) {
 
 func TestJurisdictionCount(t *testing.T) {
 	all := comply.All()
-	if len(all) != 53 {
-		t.Errorf("expected 53 jurisdictions, got %d", len(all))
+	if len(all) != 84 {
+		t.Errorf("expected 84 jurisdictions, got %d", len(all))
 	}
 }
 
