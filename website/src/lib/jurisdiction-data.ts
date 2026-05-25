@@ -36,7 +36,25 @@ export const STATE_NAMES: Record<string, string> = {
 // Maps ISO 3166-1 numeric codes to shift-comply jurisdiction codes (for world map)
 export const COUNTRY_NUMERIC_TO_CODE: Record<string, string> = {
   "840": "US",   // United States
+  "040": "AT",   // Austria
+  "056": "BE",   // Belgium
+  "756": "CH",   // Switzerland
+  "203": "CZ",   // Czech Republic
+  "276": "DE",   // Germany
+  "208": "DK",   // Denmark
   "724": "ES",   // Spain
+  "246": "FI",   // Finland
+  "250": "FR",   // France
+  "300": "GR",   // Greece
+  "191": "HR",   // Croatia
+  "348": "HU",   // Hungary
+  "372": "IE",   // Ireland
+  "380": "IT",   // Italy
+  "528": "NL",   // Netherlands
+  "616": "PL",   // Poland
+  "620": "PT",   // Portugal
+  "642": "RO",   // Romania
+  "752": "SE",   // Sweden
 };
 
 // EU member state numeric codes (inherit EU rules)
@@ -76,10 +94,46 @@ export const JURISDICTION_STATS: Record<string, JurisdictionStats> = {
   "US-OR": { hospitals: 60,     healthcareWorkers: 68_000 },
   // EU: Eurostat 2023 (physicians + nurses ~ 5.7M), hospital count not published by Eurostat
   "EU":    { hospitals: 15_000, healthcareWorkers: 5_700_000 },
+  // Austria: Eurostat 2023
+  "AT":    { hospitals: 270,    healthcareWorkers: 230_000 },
+  // Belgium: Eurostat 2023
+  "BE":    { hospitals: 185,    healthcareWorkers: 310_000 },
+  // Switzerland: BFS 2023
+  "CH":    { hospitals: 281,    healthcareWorkers: 400_000 },
+  // Czech Republic: UZIS 2023
+  "CZ":    { hospitals: 190,    healthcareWorkers: 260_000 },
+  // Germany: Destatis 2023
+  "DE":    { hospitals: 1_893,  healthcareWorkers: 1_800_000 },
+  // Denmark: Eurostat 2023
+  "DK":    { hospitals: 55,     healthcareWorkers: 190_000 },
   // Spain: Ministerio de Sanidad CNH 2025 (848 hospitals), INE 2024 (1M professionals)
   "ES":    { hospitals: 848,    healthcareWorkers: 1_009_000 },
   // Catalonia: CNH 2025 (204 hospitals), INE/Idescat 2024 (~115K physicians+nurses)
   "ES-CT": { hospitals: 204,    healthcareWorkers: 115_000 },
   // Madrid: CNH 2025 (91 hospitals), INE 2024 (~110K physicians+nurses)
   "ES-MD": { hospitals: 91,     healthcareWorkers: 110_000 },
+  // Finland: THL 2023
+  "FI":    { hospitals: 45,     healthcareWorkers: 190_000 },
+  // France: DREES 2023
+  "FR":    { hospitals: 3_004,  healthcareWorkers: 1_900_000 },
+  // Greece: ELSTAT 2023
+  "GR":    { hospitals: 290,    healthcareWorkers: 210_000 },
+  // Croatia: Eurostat 2023
+  "HR":    { hospitals: 65,     healthcareWorkers: 65_000 },
+  // Hungary: KSH 2023
+  "HU":    { hospitals: 165,    healthcareWorkers: 180_000 },
+  // Ireland: HSE 2023
+  "IE":    { hospitals: 54,     healthcareWorkers: 120_000 },
+  // Italy: Ministero della Salute 2023
+  "IT":    { hospitals: 1_054,  healthcareWorkers: 1_300_000 },
+  // Netherlands: CBS 2023
+  "NL":    { hospitals: 120,    healthcareWorkers: 450_000 },
+  // Poland: GUS 2023
+  "PL":    { hospitals: 960,    healthcareWorkers: 580_000 },
+  // Portugal: INE 2023
+  "PT":    { hospitals: 230,    healthcareWorkers: 210_000 },
+  // Romania: INS 2023
+  "RO":    { hospitals: 560,    healthcareWorkers: 290_000 },
+  // Sweden: Socialstyrelsen 2023
+  "SE":    { hospitals: 70,     healthcareWorkers: 280_000 },
 };
