@@ -234,7 +234,7 @@ func healthcareRules() []*comply.RuleDef {
 			Source: comply.Source{
 				Title:   "CCNL Comparto Sanita 2016-2018",
 				Section: "Art. 27 (Orario di lavoro dei dirigenti)",
-				URL:     "",
+				URL:     "https://www.aranagenzia.it/contrattazione/comparti/comparto-sanita.html",
 			},
 		},
 	}
