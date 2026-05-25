@@ -1,6 +1,6 @@
-// Package us_ak registers Alaska healthcare scheduling regulations.
-// Alaska has no state-specific healthcare scheduling laws beyond
-// federal FLSA and ACGME. Documented regulatory absences are included.
+// Package us_ak registers Alaska healthcare scheduling regulations:
+// AS 23.10.060 (daily overtime after 8 hours), AS 23.10.070 (weekly overtime).
+// Alaska is one of few states with daily overtime outside of California.
 package us_ak
 
 import (
@@ -27,6 +27,22 @@ func New() *comply.JurisdictionDef {
 
 func rules() []*comply.RuleDef {
 	return []*comply.RuleDef{
+		{
+			Key:         comply.RuleOvertimeDailyThreshold,
+			Name:        "Daily Overtime Threshold",
+			Description: "Overtime pay (1.5x) required for hours worked in excess of 8 in a workday.",
+			Category:    comply.CatOvertime,
+			Operator:    comply.OpGTE,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(1959, time.January, 3), Amount: 8, Unit: comply.Hours, Per: comply.PerDay},
+			},
+			Source: comply.Source{
+				Title:   "Alaska Statutes",
+				Section: "AS 23.10.060",
+				URL:     "https://www.akleg.gov/basis/statutes.asp#23.10.060",
+			},
+		},
 		{
 			Key:         comply.RuleMandatoryOTProhibited,
 			Name:        "Mandatory Overtime Prohibition -- NOT ENACTED",

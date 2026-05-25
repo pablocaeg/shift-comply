@@ -1,6 +1,5 @@
-// Package us_in registers Indiana healthcare scheduling regulations.
-// Indiana has no state-specific healthcare scheduling laws beyond
-// federal FLSA and ACGME. Documented regulatory absences are included.
+// Package us_in registers Indiana healthcare scheduling regulations:
+// IC 22-2-7 (one day of rest in seven).
 package us_in
 
 import (
@@ -27,6 +26,22 @@ func New() *comply.JurisdictionDef {
 
 func rules() []*comply.RuleDef {
 	return []*comply.RuleDef{
+		{
+			Key:         comply.RuleMinDayOfRest,
+			Name:        "Day of Rest (One Day in Seven)",
+			Description: "Every employer must allow every employee at least 24 consecutive hours of rest in each 7-day period.",
+			Category:    comply.CatRest,
+			Operator:    comply.OpGTE,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(1971, time.January, 1), Amount: 24, Unit: comply.Hours, Per: comply.PerWeek},
+			},
+			Source: comply.Source{
+				Title:   "Indiana Code",
+				Section: "IC 22-2-7-1",
+				URL:     "http://iga.in.gov/laws/2024/ic/titles/22#22-2-7",
+			},
+		},
 		{
 			Key:         comply.RuleMandatoryOTProhibited,
 			Name:        "Mandatory Overtime Prohibition -- NOT ENACTED",
