@@ -30,8 +30,8 @@ func TestAllJurisdictionsRegistered(t *testing.T) {
 
 func TestJurisdictionCount(t *testing.T) {
 	all := comply.All()
-	if len(all) != 84 {
-		t.Errorf("expected 84 jurisdictions, got %d", len(all))
+	if len(all) != 99 {
+		t.Errorf("expected 99 jurisdictions, got %d", len(all))
 	}
 }
 

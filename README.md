@@ -106,12 +106,29 @@ The integration: when a hospital onboards and selects "Catalonia, public hospita
 
 ### Spanish Autonomous Communities
 
-| Jurisdiction | Rules | Key Sources |
-|---|---|---|
-| **Catalonia** | 6 | III Acord ICS (DOGC Jan 2024). 4 guards/month, age exemptions, post-guard rest |
-| **Madrid** | 3 | SERMAS Resolution Feb 2021 + STS 280/2022. 36h weekly rest, 1,642.5 annual hours |
+All 17 autonomous communities covered. Each inherits national rules (Estatuto de los Trabajadores, Estatuto Marco, MIR regulations) and adds regional health service provisions.
 
-**449 rules across 41 jurisdictions.** Every rule has a legal citation. [Full EU comparison table](EU_COMPARISON.md).
+| Region | Rules | Health Service | Key Differences |
+|---|---|---|---|
+| **Andalusia** | 3 | SAS | 17h max guard (reform from 24h), pioneering in Spain |
+| **Aragon** | 2 | SALUD | National standard (1,642.5h/year) |
+| **Asturias** | 2 | SESPA | National standard |
+| **Balearic Islands** | 2 | IB-Salut | National standard |
+| **Basque Country** | 3 | Osakidetza | 5 guards/month, 1,592h/year (lowest in Spain) |
+| **Canary Islands** | 2 | SCS | National standard |
+| **Cantabria** | 2 | SCS | National standard |
+| **Castilla y Leon** | 2 | SACYL | National standard |
+| **Castilla-La Mancha** | 2 | SESCAM | National standard |
+| **Catalonia** | 6 | ICS | 4 guards/month, age exemptions, post-guard rest as working time |
+| **Extremadura** | 2 | SES | National standard |
+| **Galicia** | 2 | SERGAS | 6 guards/month |
+| **La Rioja** | 2 | SERIS | National standard |
+| **Madrid** | 3 | SERMAS | 36h weekly rest, 1,642.5h/year, post-guard rest not working time |
+| **Murcia** | 2 | SMS | National standard |
+| **Navarre** | 2 | SNS-O | 1,592h/year (same as Basque Country) |
+| **Valencian Community** | 2 | Conselleria de Sanitat | 36h weekly rest per STS 280/2022 |
+
+**593 rules across 99 jurisdictions.** Every rule has a legal citation. [Full EU comparison table](EU_COMPARISON.md).
 
 ## Install
 

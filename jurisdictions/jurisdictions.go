@@ -17,8 +17,23 @@ import (
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/dk"    // DK jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/ee"    // EE jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/es"    // ES jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_an" // ES-AN jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_ar" // ES-AR jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_as" // ES-AS jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_cb" // ES-CB jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_cl" // ES-CL jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_cm" // ES-CM jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_cn" // ES-CN jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_ct" // ES-CT jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_ex" // ES-EX jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_ga" // ES-GA jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_ib" // ES-IB jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_mc" // ES-MC jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_md" // ES-MD jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_nc" // ES-NC jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_pv" // ES-PV jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_ri" // ES-RI jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_vc" // ES-VC jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/eu"    // EU jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/fi"    // FI jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/fr"    // FR jurisdiction
