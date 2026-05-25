@@ -1,5 +1,6 @@
-// Package us_oh registers Ohio healthcare scheduling regulations:
-// ORC S 4723.09 (nurse overtime restriction).
+// Package us_oh registers Ohio healthcare scheduling regulations.
+// Ohio does NOT have an enacted nurse mandatory overtime ban. HB 163
+// passed the House but has stalled in the Senate for multiple sessions.
 package us_oh
 
 import (
@@ -28,30 +29,35 @@ func rules() []*comply.RuleDef {
 	return []*comply.RuleDef{
 		{
 			Key:         comply.RuleMandatoryOTProhibited,
-			Name:        "Mandatory Overtime Restriction (Nurses)",
-			Description: "Hospitals may not schedule or require a nurse to work in excess of an agreed-upon and predetermined regular work schedule. Includes RNs, LPNs, and nursing assistants.",
+			Name:        "Mandatory Overtime Prohibition -- NOT ENACTED",
+			Description: "Ohio does not prohibit mandatory overtime for nurses. HB 163 passed the House but has stalled in the Senate for multiple consecutive General Assemblies.",
 			Category:    comply.CatOvertime,
 			Operator:    comply.OpBool,
-			StaffTypes:  []comply.Key{comply.StaffNurseRN, comply.StaffNurseLPN, comply.StaffNurseCNA},
-			Scope:       comply.ScopeHospitals,
-			Enforcement: comply.Mandatory,
+			Enforcement: comply.Advisory,
 			Values: []*comply.RuleValue{
-				{
-					Since:  comply.D(2022, time.April, 7),
-					Amount: 1,
-					Unit:   comply.Boolean,
-					Exceptions: []string{
-						"Federal, state, or local declaration of emergency",
-						"Unforeseen emergency posing immediate threat to patient health and safety",
-					},
-				},
+				{Since: comply.D(1900, time.January, 1), Amount: 0, Unit: comply.Boolean},
 			},
 			Source: comply.Source{
-				Title:   "Ohio Revised Code",
-				Section: "ORC S 4723.09 (HB 279, 134th General Assembly)",
-				URL:     "https://codes.ohio.gov/ohio-revised-code/section-4723.09",
+				Title:   "Ohio General Assembly",
+				Section: "HB 163 (pending, not enacted)",
+				URL:     "https://www.legislature.ohio.gov/",
 			},
-			Notes: "Effective April 7, 2022. Relatively recent compared to other states. Applies only to hospitals.",
+		},
+		{
+			Key:         comply.RuleMealBreakThreshold,
+			Name:        "Meal/Rest Break Requirement -- NOT ENACTED",
+			Description: "Ohio does not require meal or rest breaks for adult workers.",
+			Category:    comply.CatBreaks,
+			Operator:    comply.OpBool,
+			Enforcement: comply.Advisory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(1900, time.January, 1), Amount: 0, Unit: comply.Boolean},
+			},
+			Source: comply.Source{
+				Title:   "Ohio Department of Commerce",
+				Section: "No state break requirement",
+				URL:     "https://com.ohio.gov/",
+			},
 		},
 	}
 }

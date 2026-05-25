@@ -136,6 +136,31 @@ func labourCodeRules() []*comply.RuleDef {
 			Source: comply.Source{Title: kp.Title, Section: "Art. 134", URL: kp.URL},
 		},
 		{
+			Key:         comply.RuleNightPeriodStart,
+			Name:        "Night Period Start",
+			Description: "Night work is defined as work between 21:00 and 07:00 (8 hours).",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpEQ,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(1974, time.June, 26), Amount: 21, Unit: comply.HourOfDay},
+			},
+			Source: comply.Source{Title: kp.Title, Section: "Art. 151(7) S 1", URL: kp.URL},
+			Notes:  "Poland has one of the widest night periods in Europe (21:00-07:00, 10 hours).",
+		},
+		{
+			Key:         comply.RuleNightPeriodEnd,
+			Name:        "Night Period End",
+			Description: "Night work period ends at 07:00.",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpEQ,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(1974, time.June, 26), Amount: 7, Unit: comply.HourOfDay},
+			},
+			Source: comply.Source{Title: kp.Title, Section: "Art. 151(7) S 1", URL: kp.URL},
+		},
+		{
 			Key:         comply.RuleMinAnnualLeaveDays,
 			Name:        "Minimum Annual Leave",
 			Description: "20 working days for employees with less than 10 years of service; 26 working days for 10+ years (education counts toward seniority).",

@@ -88,6 +88,18 @@ func rules() []*comply.RuleDef {
 			Source: comply.Source{Title: tls.Title, Section: "S 52", URL: tls.URL},
 		},
 		{
+			Key:         comply.RuleMealBreakThreshold,
+			Name:        "Break Requirement",
+			Description: "A break must be granted when working time is 6 or more hours.",
+			Category:    comply.CatBreaks,
+			Operator:    comply.OpGTE,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2009, time.July, 1), Amount: 6, Unit: comply.Hours, Per: comply.PerShift},
+			},
+			Source: comply.Source{Title: tls.Title, Section: "S 47(2)", URL: tls.URL},
+		},
+		{
 			Key:         comply.RuleMealBreakDuration,
 			Name:        "Break Duration",
 			Description: "At least 30 minutes during a working day. If working time is 6+ hours, the break must be granted.",

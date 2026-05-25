@@ -100,6 +100,18 @@ func rules() []*comply.RuleDef {
 			Source: comply.Source{Title: dk.Title, Section: "Art. 122(3)", URL: dk.URL},
 		},
 		{
+			Key:         comply.RuleMealBreakThreshold,
+			Name:        "Break Requirement",
+			Description: "A meal break is mandatory when working time exceeds 6 hours.",
+			Category:    comply.CatBreaks,
+			Operator:    comply.OpGTE,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2017, time.July, 1), Amount: 6, Unit: comply.Hours, Per: comply.PerShift},
+			},
+			Source: comply.Source{Title: dk.Title, Section: "Art. 122(2)", URL: dk.URL},
+		},
+		{
 			Key:         comply.RuleMealBreakDuration,
 			Name:        "Break Duration",
 			Description: "At least 30 minutes meal break if working time exceeds 6 hours. Shorter break (no less than 20 minutes) possible by agreement.",

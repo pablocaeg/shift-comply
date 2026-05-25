@@ -102,6 +102,18 @@ func rules() []*comply.RuleDef {
 			Source: comply.Source{Title: zdr.Title, Section: "Art. 156", URL: zdr.URL},
 		},
 		{
+			Key:         comply.RuleMealBreakThreshold,
+			Name:        "Break Requirement",
+			Description: "A break is mandatory during a full working day (6+ hours).",
+			Category:    comply.CatBreaks,
+			Operator:    comply.OpGTE,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2013, time.April, 12), Amount: 6, Unit: comply.Hours, Per: comply.PerShift},
+			},
+			Source: comply.Source{Title: zdr.Title, Section: "Art. 154", URL: zdr.URL},
+		},
+		{
 			Key:         comply.RuleMealBreakDuration,
 			Name:        "Break Duration",
 			Description: "At least 30 minutes during a full working day. Paid break included in working time.",

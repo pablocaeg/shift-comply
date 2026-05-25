@@ -124,6 +124,42 @@ func rules() []*comply.RuleDef {
 			Source: comply.Source{Title: ct.Title, Section: "Art. L.211-22", URL: ct.URL},
 		},
 		{
+			Key:         comply.RuleMealBreakThreshold,
+			Name:        "Break Requirement",
+			Description: "A break is mandatory when daily working time exceeds 6 hours.",
+			Category:    comply.CatBreaks,
+			Operator:    comply.OpGTE,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2006, time.September, 1), Amount: 6, Unit: comply.Hours, Per: comply.PerShift},
+			},
+			Source: comply.Source{Title: ct.Title, Section: "Art. L.211-16", URL: ct.URL},
+		},
+		{
+			Key:         comply.RuleMaxOvertimeAnnual,
+			Name:        "Maximum Annual Overtime",
+			Description: "Maximum 150 hours of overtime per year per employee. Additional overtime requires authorization from the Inspectorate of Labour.",
+			Category:    comply.CatOvertime,
+			Operator:    comply.OpLTE,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2006, time.September, 1), Amount: 150, Unit: comply.Hours, Per: comply.PerYear},
+			},
+			Source: comply.Source{Title: ct.Title, Section: "Art. L.211-27", URL: ct.URL},
+		},
+		{
+			Key:         comply.RuleMaxNightShiftHours,
+			Name:        "Maximum Night Worker Hours",
+			Description: "Night workers may not work more than 8 hours on average per 24-hour period.",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpLTE,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2006, time.September, 1), Amount: 8, Unit: comply.Hours, Per: comply.PerDay},
+			},
+			Source: comply.Source{Title: ct.Title, Section: "Art. L.211-22", URL: ct.URL},
+		},
+		{
 			Key:         comply.RuleMinAnnualLeaveDays,
 			Name:        "Minimum Annual Leave",
 			Description: "Minimum 26 working days of paid annual leave per year.",

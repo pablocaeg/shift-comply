@@ -128,6 +128,31 @@ func dlgs66Rules() []*comply.RuleDef {
 			Source: comply.Source{Title: dlgs.Title, Section: "Art. 5, comma 3", URL: dlgs.URL},
 		},
 		{
+			Key:         comply.RuleNightPeriodStart,
+			Name:        "Night Period Start",
+			Description: "Night period is at least 7 consecutive hours including the mandatory interval from midnight to 05:00. Conventionally 22:00 to 05:00 or per collective agreement.",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpEQ,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2003, time.April, 14), Amount: 22, Unit: comply.HourOfDay},
+			},
+			Source: comply.Source{Title: dlgs.Title, Section: "Art. 1, comma 2, lettera d", URL: dlgs.URL},
+			Notes:  "The law defines night as at least 7 hours including midnight-05:00. The exact boundaries are set by collective agreement. 22:00-05:00 is the most common interpretation.",
+		},
+		{
+			Key:         comply.RuleNightPeriodEnd,
+			Name:        "Night Period End",
+			Description: "Night period ends at 05:00 (mandatory core) or up to 07:00 by collective agreement.",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpEQ,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2003, time.April, 14), Amount: 5, Unit: comply.HourOfDay},
+			},
+			Source: comply.Source{Title: dlgs.Title, Section: "Art. 1, comma 2, lettera d", URL: dlgs.URL},
+		},
+		{
 			Key:         comply.RuleMaxNightShiftHours,
 			Name:        "Maximum Night Worker Hours",
 			Description: "Night workers may not work more than 8 hours on average per 24-hour period.",

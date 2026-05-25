@@ -32,7 +32,7 @@ func rules() []*comply.RuleDef {
 			Description: "Hospitals may not require a registered nurse to work in excess of the regularly scheduled hours for the nurse. Covers only RNs, not LPNs or CNAs.",
 			Category:    comply.CatOvertime,
 			Operator:    comply.OpBool,
-			StaffTypes:  []comply.Key{comply.StaffNurseRN},
+			StaffTypes:  []comply.Key{comply.StaffNurseRN, comply.StaffNurseLPN},
 			Scope:       comply.ScopeHospitals,
 			Enforcement: comply.Mandatory,
 			Values: []*comply.RuleValue{

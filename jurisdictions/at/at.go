@@ -90,6 +90,30 @@ func generalRules() []*comply.RuleDef {
 			Source: comply.Source{Title: azg.Title, Section: "S 12", URL: azg.URL},
 		},
 		{
+			Key:         comply.RuleNightPeriodStart,
+			Name:        "Night Period Start",
+			Description: "Night time is defined as 22:00 to 05:00. Austria has an unusually early end (05:00 vs 06:00 in most EU countries).",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpEQ,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(1969, time.December, 12), Amount: 22, Unit: comply.HourOfDay},
+			},
+			Source: comply.Source{Title: azg.Title, Section: "S 12a", URL: azg.URL},
+		},
+		{
+			Key:         comply.RuleNightPeriodEnd,
+			Name:        "Night Period End",
+			Description: "Night work period ends at 05:00 (earlier than the 06:00 standard in most EU countries).",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpEQ,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(1969, time.December, 12), Amount: 5, Unit: comply.HourOfDay},
+			},
+			Source: comply.Source{Title: azg.Title, Section: "S 12a", URL: azg.URL},
+		},
+		{
 			Key:         comply.RuleMinWeeklyRest,
 			Name:        "Minimum Weekly Rest (Weekend Rest)",
 			Description: "At least 36 consecutive hours of uninterrupted weekly rest, including Sunday.",

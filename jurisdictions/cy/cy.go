@@ -77,6 +77,18 @@ func rules() []*comply.RuleDef {
 			Source: comply.Source{Title: owt.Title, Section: "S 6", URL: owt.URL},
 		},
 		{
+			Key:         comply.RuleMealBreakThreshold,
+			Name:        "Break Requirement",
+			Description: "A break is mandatory when daily working time exceeds 6 hours.",
+			Category:    comply.CatBreaks,
+			Operator:    comply.OpGTE,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2002, time.December, 1), Amount: 6, Unit: comply.Hours, Per: comply.PerShift},
+			},
+			Source: comply.Source{Title: owt.Title, Section: "S 7", URL: owt.URL},
+		},
+		{
 			Key:         comply.RuleMealBreakDuration,
 			Name:        "Break Duration",
 			Description: "At least 15 minutes when daily working time exceeds 6 hours. Collective agreements typically provide 30 minutes.",

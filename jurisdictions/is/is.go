@@ -101,6 +101,54 @@ func rules() []*comply.RuleDef {
 			},
 		},
 		{
+			Key:         comply.RuleNightPeriodStart,
+			Name:        "Night Period Start",
+			Description: "Night work is defined as work between 23:00 and 06:00.",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpEQ,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2002, time.January, 1), Amount: 23, Unit: comply.HourOfDay},
+			},
+			Source: comply.Source{
+				Title:   "Reglugerdin um vinnuverndarstarfsemi a vinnustoedum (Regulation No. 1000/2004)",
+				Section: "Art. 52",
+				URL:     "https://www.reglugerd.is/reglugerdir/eftir-raduneytum/felagsmalaraduneyti/nr/20773",
+			},
+		},
+		{
+			Key:         comply.RuleNightPeriodEnd,
+			Name:        "Night Period End",
+			Description: "Night work period ends at 06:00.",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpEQ,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2002, time.January, 1), Amount: 6, Unit: comply.HourOfDay},
+			},
+			Source: comply.Source{
+				Title:   "Reglugerdin um vinnuverndarstarfsemi a vinnustoedum (Regulation No. 1000/2004)",
+				Section: "Art. 52",
+				URL:     "https://www.reglugerd.is/reglugerdir/eftir-raduneytum/felagsmalaraduneyti/nr/20773",
+			},
+		},
+		{
+			Key:         comply.RuleMaxNightShiftHours,
+			Name:        "Maximum Night Worker Hours",
+			Description: "Night workers may not work more than 8 hours on average per 24-hour period.",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpLTE,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2002, time.January, 1), Amount: 8, Unit: comply.Hours, Per: comply.PerDay},
+			},
+			Source: comply.Source{
+				Title:   "Reglugerdin um vinnuverndarstarfsemi a vinnustoedum (Regulation No. 1000/2004)",
+				Section: "Art. 52",
+				URL:     "https://www.reglugerd.is/reglugerdir/eftir-raduneytum/felagsmalaraduneyti/nr/20773",
+			},
+		},
+		{
 			Key:         comply.RuleMinAnnualLeaveDays,
 			Name:        "Minimum Annual Leave",
 			Description: "Minimum 24 working days of paid annual leave per year. Increases to 25 days after 5 years and 30 days after 10 years with same employer.",

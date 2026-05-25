@@ -157,6 +157,43 @@ func labourCodeRules() []*comply.RuleDef {
 			},
 			Source: comply.Source{Title: mt.Title, Section: "S 103", URL: mt.URL},
 		},
+		{
+			Key:         comply.RuleNightPeriodStart,
+			Name:        "Night Period Start",
+			Description: "Night work is defined as work between 22:00 and 06:00.",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpEQ,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2012, time.July, 1), Amount: 22, Unit: comply.HourOfDay},
+			},
+			Source: comply.Source{Title: mt.Title, Section: "S 89", URL: mt.URL},
+		},
+		{
+			Key:         comply.RuleNightPeriodEnd,
+			Name:        "Night Period End",
+			Description: "Night work period ends at 06:00.",
+			Category:    comply.CatNightWork,
+			Operator:    comply.OpEQ,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2012, time.July, 1), Amount: 6, Unit: comply.HourOfDay},
+			},
+			Source: comply.Source{Title: mt.Title, Section: "S 89", URL: mt.URL},
+		},
+		{
+			Key:         comply.RuleMinAnnualLeaveDays,
+			Name:        "Minimum Annual Leave",
+			Description: "Minimum 20 working days of paid annual leave. Increases with age: 21 days at 25, up to 30 days at 45+.",
+			Category:    comply.CatLeave,
+			Operator:    comply.OpGTE,
+			Enforcement: comply.Mandatory,
+			Values: []*comply.RuleValue{
+				{Since: comply.D(2012, time.July, 1), Amount: 20, Unit: comply.Days, Per: comply.PerYear},
+			},
+			Source: comply.Source{Title: mt.Title, Section: "S 116", URL: mt.URL},
+			Notes:  "Increases with age: 21 days at 25, 22 at 28, 23 at 31, 24 at 33, 25 at 35, 26 at 37, 27 at 39, 28 at 41, 29 at 43, 30 at 45+.",
+		},
 	}
 }
 
