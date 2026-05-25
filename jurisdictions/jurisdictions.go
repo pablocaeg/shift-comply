@@ -9,10 +9,13 @@ package jurisdictions
 import (
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/at"    // AT jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/be"    // BE jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/bg"    // BG jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/ch"    // CH jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/cy"    // CY jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/cz"    // CZ jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/de"    // DE jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/dk"    // DK jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/ee"    // EE jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/es"    // ES jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_ct" // ES-CT jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/es_md" // ES-MD jurisdiction
@@ -23,12 +26,20 @@ import (
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/hr"    // HR jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/hu"    // HU jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/ie"    // IE jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/is"    // IS jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/it"    // IT jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/lt"    // LT jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/lu"    // LU jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/lv"    // LV jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/mt"    // MT jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/nl"    // NL jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/no"    // NO jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/pl"    // PL jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/pt"    // PT jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/ro"    // RO jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/se"    // SE jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/si"    // SI jurisdiction
+	_ "github.com/pablocaeg/shift-comply/jurisdictions/sk"    // SK jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/us"    // US jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/us_ca" // US-CA jurisdiction
 	_ "github.com/pablocaeg/shift-comply/jurisdictions/us_fl" // US-FL jurisdiction

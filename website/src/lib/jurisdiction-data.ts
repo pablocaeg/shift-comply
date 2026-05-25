@@ -38,10 +38,13 @@ export const COUNTRY_NUMERIC_TO_CODE: Record<string, string> = {
   "840": "US",   // United States
   "040": "AT",   // Austria
   "056": "BE",   // Belgium
+  "100": "BG",   // Bulgaria
   "756": "CH",   // Switzerland
+  "196": "CY",   // Cyprus
   "203": "CZ",   // Czech Republic
   "276": "DE",   // Germany
   "208": "DK",   // Denmark
+  "233": "EE",   // Estonia
   "724": "ES",   // Spain
   "246": "FI",   // Finland
   "250": "FR",   // France
@@ -49,12 +52,20 @@ export const COUNTRY_NUMERIC_TO_CODE: Record<string, string> = {
   "191": "HR",   // Croatia
   "348": "HU",   // Hungary
   "372": "IE",   // Ireland
+  "352": "IS",   // Iceland
   "380": "IT",   // Italy
+  "440": "LT",   // Lithuania
+  "442": "LU",   // Luxembourg
+  "428": "LV",   // Latvia
+  "470": "MT",   // Malta
   "528": "NL",   // Netherlands
+  "578": "NO",   // Norway
   "616": "PL",   // Poland
   "620": "PT",   // Portugal
   "642": "RO",   // Romania
   "752": "SE",   // Sweden
+  "705": "SI",   // Slovenia
+  "703": "SK",   // Slovakia
 };
 
 // EU member state numeric codes (inherit EU rules)
@@ -98,14 +109,20 @@ export const JURISDICTION_STATS: Record<string, JurisdictionStats> = {
   "AT":    { hospitals: 270,    healthcareWorkers: 230_000 },
   // Belgium: Eurostat 2023
   "BE":    { hospitals: 185,    healthcareWorkers: 310_000 },
+  // Bulgaria: Eurostat 2023
+  "BG":    { hospitals: 340,    healthcareWorkers: 100_000 },
   // Switzerland: BFS 2023
   "CH":    { hospitals: 281,    healthcareWorkers: 400_000 },
+  // Cyprus: Eurostat 2023
+  "CY":    { hospitals: 18,     healthcareWorkers: 14_000 },
   // Czech Republic: UZIS 2023
   "CZ":    { hospitals: 190,    healthcareWorkers: 260_000 },
   // Germany: Destatis 2023
   "DE":    { hospitals: 1_893,  healthcareWorkers: 1_800_000 },
   // Denmark: Eurostat 2023
   "DK":    { hospitals: 55,     healthcareWorkers: 190_000 },
+  // Estonia: Eurostat 2023
+  "EE":    { hospitals: 40,     healthcareWorkers: 22_000 },
   // Spain: Ministerio de Sanidad CNH 2025 (848 hospitals), INE 2024 (1M professionals)
   "ES":    { hospitals: 848,    healthcareWorkers: 1_009_000 },
   // Catalonia: CNH 2025 (204 hospitals), INE/Idescat 2024 (~115K physicians+nurses)
@@ -124,10 +141,22 @@ export const JURISDICTION_STATS: Record<string, JurisdictionStats> = {
   "HU":    { hospitals: 165,    healthcareWorkers: 180_000 },
   // Ireland: HSE 2023
   "IE":    { hospitals: 54,     healthcareWorkers: 120_000 },
+  // Iceland: Eurostat 2023
+  "IS":    { hospitals: 10,     healthcareWorkers: 12_000 },
   // Italy: Ministero della Salute 2023
   "IT":    { hospitals: 1_054,  healthcareWorkers: 1_300_000 },
+  // Lithuania: Eurostat 2023
+  "LT":    { hospitals: 90,     healthcareWorkers: 55_000 },
+  // Luxembourg: Eurostat 2023
+  "LU":    { hospitals: 10,     healthcareWorkers: 18_000 },
+  // Latvia: Eurostat 2023
+  "LV":    { hospitals: 55,     healthcareWorkers: 35_000 },
+  // Malta: Eurostat 2023
+  "MT":    { hospitals: 8,      healthcareWorkers: 10_000 },
   // Netherlands: CBS 2023
   "NL":    { hospitals: 120,    healthcareWorkers: 450_000 },
+  // Norway: SSB 2023
+  "NO":    { hospitals: 50,     healthcareWorkers: 280_000 },
   // Poland: GUS 2023
   "PL":    { hospitals: 960,    healthcareWorkers: 580_000 },
   // Portugal: INE 2023
@@ -136,4 +165,8 @@ export const JURISDICTION_STATS: Record<string, JurisdictionStats> = {
   "RO":    { hospitals: 560,    healthcareWorkers: 290_000 },
   // Sweden: Socialstyrelsen 2023
   "SE":    { hospitals: 70,     healthcareWorkers: 280_000 },
+  // Slovenia: Eurostat 2023
+  "SI":    { hospitals: 30,     healthcareWorkers: 40_000 },
+  // Slovakia: Eurostat 2023
+  "SK":    { hospitals: 80,     healthcareWorkers: 95_000 },
 };
