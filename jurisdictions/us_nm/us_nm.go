@@ -28,7 +28,7 @@ func New() *comply.JurisdictionDef {
 func rules() []*comply.RuleDef {
 	return []*comply.RuleDef{
 		{
-			Key:         comply.RuleMandatoryOTProhibited,
+			Key:         "no-mandatory-overtime-ban",
 			Name:        "Mandatory Overtime Prohibition -- NOT ENACTED",
 			Description: "New Mexico does not prohibit mandatory overtime for nurses or other healthcare workers.",
 			Category:    comply.CatOvertime,
@@ -44,7 +44,7 @@ func rules() []*comply.RuleDef {
 			},
 		},
 		{
-			Key:         comply.RuleMealBreakThreshold,
+			Key:         "no-meal-break-requirement",
 			Name:        "Meal/Rest Break Requirement -- NOT ENACTED",
 			Description: "New Mexico does not require meal or rest breaks for adult workers.",
 			Category:    comply.CatBreaks,

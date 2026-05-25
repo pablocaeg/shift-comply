@@ -28,7 +28,7 @@ func New() *comply.JurisdictionDef {
 func rules() []*comply.RuleDef {
 	return []*comply.RuleDef{
 		{
-			Key:         comply.RuleMandatoryOTProhibited,
+			Key:         "no-mandatory-overtime-ban",
 			Name:        "Mandatory Overtime Prohibition -- NOT ENACTED",
 			Description: "Ohio does not prohibit mandatory overtime for nurses. HB 163 passed the House but has stalled in the Senate for multiple consecutive General Assemblies.",
 			Category:    comply.CatOvertime,
@@ -44,7 +44,7 @@ func rules() []*comply.RuleDef {
 			},
 		},
 		{
-			Key:         comply.RuleMealBreakThreshold,
+			Key:         "no-meal-break-requirement",
 			Name:        "Meal/Rest Break Requirement -- NOT ENACTED",
 			Description: "Ohio does not require meal or rest breaks for adult workers.",
 			Category:    comply.CatBreaks,

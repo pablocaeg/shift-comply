@@ -50,7 +50,7 @@ func rules() []*comply.RuleDef {
 			Operator:    comply.OpGTE,
 			Enforcement: comply.Mandatory,
 			Values: []*comply.RuleValue{
-				{Since: comply.D(1931, time.January, 1), Amount: 24, Unit: comply.Hours, Per: comply.PerWeek},
+				{Since: comply.D(1931, time.January, 1), Amount: 1, Unit: comply.Days, Per: comply.PerWeek},
 			},
 			Source: comply.Source{
 				Title:   "Wisconsin Statutes",

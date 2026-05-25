@@ -44,7 +44,7 @@ func rules() []*comply.RuleDef {
 			Notes: "Penalty: Class B misdemeanor, fine $100-$500 per violation. Exemption: workplaces that by nature provide ample opportunity for breaks.",
 		},
 		{
-			Key:         comply.RuleMandatoryOTProhibited,
+			Key:         "no-mandatory-overtime-ban",
 			Name:        "Mandatory Overtime Prohibition -- NOT ENACTED",
 			Description: "Tennessee does not prohibit mandatory overtime for nurses or other healthcare workers.",
 			Category:    comply.CatOvertime,

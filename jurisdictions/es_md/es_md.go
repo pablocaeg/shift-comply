@@ -43,7 +43,7 @@ func New() *comply.JurisdictionDef {
 func rules() []*comply.RuleDef {
 	sermasResolution := comply.Source{
 		Title:   "Resolucion de 26 de febrero de 2021 de la Direccion General de RRHH y Relaciones Laborales del SERMAS",
-		Section: "",
+		Section: "Instrucciones sobre descansos post-guardia",
 		URL:     "https://www.redaccionmedica.com/autonomias/madrid/sermas-aprueba-nueva-orden-descansos-obligatorios-guardias-1935",
 	}
 

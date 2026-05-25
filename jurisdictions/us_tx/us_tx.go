@@ -104,7 +104,7 @@ func rules() []*comply.RuleDef {
 		// These are explicit "not enacted" markers so comparison tools can show
 		// what Texas lacks versus states like CA and NY.
 		{
-			Key:         comply.RuleOvertimeDailyThreshold,
+			Key:         "no-daily-overtime-threshold",
 			Name:        "Daily Overtime Threshold — NOT ENACTED",
 			Description: "Texas has no state daily overtime law. Only federal FLSA weekly overtime (40 hrs) applies.",
 			Category:    comply.CatOvertime,
@@ -120,7 +120,7 @@ func rules() []*comply.RuleDef {
 			},
 		},
 		{
-			Key:         comply.RuleMealBreakThreshold,
+			Key:         "no-meal-break-requirement",
 			Name:        "Meal Break Requirement — NOT ENACTED",
 			Description: "Texas has no state meal break requirement for any workers, including healthcare.",
 			Category:    comply.CatBreaks,
@@ -136,7 +136,7 @@ func rules() []*comply.RuleDef {
 			},
 		},
 		{
-			Key:         comply.RuleRestBreakDuration,
+			Key:         "no-rest-break-requirement",
 			Name:        "Rest Break Requirement — NOT ENACTED",
 			Description: "Texas has no state rest break requirement.",
 			Category:    comply.CatBreaks,

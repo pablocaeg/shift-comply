@@ -72,7 +72,7 @@ func rules() []*comply.RuleDef {
 			Notes: "Also requires 10 consecutive hours off-duty after completing a scheduled shift.",
 		},
 		{
-			Key:         comply.RuleMealBreakThreshold,
+			Key:         "no-meal-break-requirement",
 			Name:        "Meal/Rest Break Requirement -- NOT ENACTED",
 			Description: "Alaska does not require meal or rest breaks for adult workers.",
 			Category:    comply.CatBreaks,

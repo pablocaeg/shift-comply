@@ -50,7 +50,7 @@ func rules() []*comply.RuleDef {
 			},
 		},
 		{
-			Key:         comply.RuleMandatoryOTProhibited,
+			Key:         "no-mandatory-overtime-ban",
 			Name:        "Mandatory Overtime Prohibition -- NOT ENACTED",
 			Description: "Montana does not prohibit mandatory overtime for nurses or other healthcare workers.",
 			Category:    comply.CatOvertime,
@@ -66,7 +66,7 @@ func rules() []*comply.RuleDef {
 			},
 		},
 		{
-			Key:         comply.RuleMealBreakThreshold,
+			Key:         "no-meal-break-requirement",
 			Name:        "Meal/Rest Break Requirement -- NOT ENACTED",
 			Description: "Montana does not require meal or rest breaks for adult workers in general. Mining-specific breaks exist under MCA 39-3-601.",
 			Category:    comply.CatBreaks,

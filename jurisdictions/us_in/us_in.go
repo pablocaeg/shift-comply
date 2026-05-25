@@ -34,7 +34,7 @@ func rules() []*comply.RuleDef {
 			Operator:    comply.OpGTE,
 			Enforcement: comply.Mandatory,
 			Values: []*comply.RuleValue{
-				{Since: comply.D(1971, time.January, 1), Amount: 24, Unit: comply.Hours, Per: comply.PerWeek},
+				{Since: comply.D(1971, time.January, 1), Amount: 1, Unit: comply.Days, Per: comply.PerWeek},
 			},
 			Source: comply.Source{
 				Title:   "Indiana Code",
@@ -43,7 +43,7 @@ func rules() []*comply.RuleDef {
 			},
 		},
 		{
-			Key:         comply.RuleMandatoryOTProhibited,
+			Key:         "no-mandatory-overtime-ban",
 			Name:        "Mandatory Overtime Prohibition -- NOT ENACTED",
 			Description: "Indiana does not prohibit mandatory overtime for nurses or other healthcare workers.",
 			Category:    comply.CatOvertime,
@@ -59,7 +59,7 @@ func rules() []*comply.RuleDef {
 			},
 		},
 		{
-			Key:         comply.RuleMealBreakThreshold,
+			Key:         "no-meal-break-requirement",
 			Name:        "Meal/Rest Break Requirement -- NOT ENACTED",
 			Description: "Indiana does not require meal or rest breaks for adult workers.",
 			Category:    comply.CatBreaks,

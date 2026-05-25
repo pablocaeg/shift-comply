@@ -46,7 +46,7 @@ func rules() []*comply.RuleDef {
 			Notes: "Michigan does not have a general mandatory break law for adults. The statute provides for breaks in specific industries. Federal FLSA applies for compensable time determination.",
 		},
 		{
-			Key:         comply.RuleMandatoryOTProhibited,
+			Key:         "no-mandatory-overtime-ban",
 			Name:        "Mandatory Overtime Prohibition -- NOT ENACTED",
 			Description: "Michigan does not prohibit mandatory overtime for nurses or other healthcare workers.",
 			Category:    comply.CatOvertime,
