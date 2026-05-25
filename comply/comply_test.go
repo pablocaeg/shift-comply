@@ -10,8 +10,10 @@ import (
 
 func TestAllJurisdictionsRegistered(t *testing.T) {
 	expected := []comply.Code{
-		comply.US, comply.USCA, comply.USNY, comply.USTX, comply.USFL,
-		comply.USMA, comply.USIL, comply.USOR,
+		comply.US, comply.USCA, comply.USCT, comply.USFL, comply.USIL,
+		comply.USMA, comply.USMD, comply.USME, comply.USMN, comply.USMO,
+		comply.USNH, comply.USNJ, comply.USNY, comply.USOH, comply.USOR,
+		comply.USPA, comply.USRI, comply.USTX, comply.USWA, comply.USWV,
 		comply.EU, comply.AT, comply.BE, comply.BG, comply.CH, comply.CY,
 		comply.CZ, comply.DE, comply.DK, comply.EE, comply.FI, comply.FR,
 		comply.GR, comply.HR, comply.HU, comply.IE, comply.IS, comply.IT,
@@ -39,8 +41,8 @@ func TestAllJurisdictionsRegistered(t *testing.T) {
 
 func TestJurisdictionCount(t *testing.T) {
 	all := comply.All()
-	if len(all) != 41 {
-		t.Errorf("expected 41 jurisdictions, got %d", len(all))
+	if len(all) != 53 {
+		t.Errorf("expected 53 jurisdictions, got %d", len(all))
 	}
 }
 
